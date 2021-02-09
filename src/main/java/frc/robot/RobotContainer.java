@@ -7,27 +7,22 @@
 
 package frc.robot;
 
-import java.util.List;
-
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.controller.PIDController;
-import edu.wpi.first.wpilibj.controller.RamseteController;
-import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
-import edu.wpi.first.wpilibj.geometry.Pose2d;
-import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.geometry.Translation2d;
-import edu.wpi.first.wpilibj.trajectory.Trajectory;
-import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
-import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RamseteCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.subsystems.DrivebaseSubsytem;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.commands.*;
+import frc.robot.commands.AutoHelpers.AutoLoad;
+import frc.robot.commands.AutoHelpers.AutoShoot;
+import frc.robot.commands.AutoHelpers.AutoShoot_V2;
+import frc.robot.commands.AutoHelpers.LoadNextBall;
+import frc.robot.commands.Climber.*;
+import frc.robot.subsystems.*;
+
+import java.util.function.BooleanSupplier;
 
 /**
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -36,12 +31,29 @@ import frc.robot.subsystems.DrivebaseSubsytem;
  * (including subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-  // The robot's subsystems and commands are defined here...
-  public static final Joystick DRIVE_JOYSTICK = new Joystick(0);
 
-  private final DrivebaseSubsytem m_robotDrive = new DrivebaseSubsytem();
+  public static Joystick driveJS = new Joystick(0);
+  public static ButtonBox buttonBox = new ButtonBox(1);
+  public static Joystick testJS = new Joystick(2);
+
+  private Conveyor m_Conveyor = new Conveyor();
+  private Turret m_Turret = new Turret();
+  private static Shooter m_Shooter = new Shooter();
+  private DriveBase m_DriveBase = new DriveBase();
+  private static Climber m_Climber = new Climber();
+  private BallElevator m_BallElevator = new BallElevator();
+
+  public static NetworkTable limelight = NetworkTableInstance.getDefault().getTable("limelight");
+  public static NetworkTable limelightBall = NetworkTableInstance.getDefault().getTable("limelight-ball");
 
 
+  public static Shooter getShooter() {
+    return m_Shooter;
+  }
+
+  public static Climber getClimber() {
+    return m_Climber;
+  }
 
   /**
    * The container for the robot.  Contains subsystems, OI devices, and commands.
@@ -50,17 +62,42 @@ public class RobotContainer {
     // Configure the button bindings
     configureButtonBindings();
 
-    // Configure default commands
-    // Set the default drive command to split-stick arcade drive
-    m_robotDrive.setDefaultCommand(
-        // A split-stick arcade command, with forward/backward controlled by the left
-        // hand, and turning controlled by the right.
-        new RunCommand(
-            () ->
-                m_robotDrive.arcadeDrive(
-                    DRIVE_JOYSTICK.getRawAxis(2),
-                    DRIVE_JOYSTICK.getRawAxis(1)),
-            m_robotDrive));
+    // Default Commands
+//    m_Turret.setDefaultCommand(new TurretRotate(m_Turret));
+    m_DriveBase.setDefaultCommand(new Drive(m_DriveBase));
+//    m_BallElevator.setDefaultCommand(new LoadNextBall(m_BallElevator));
+    m_Climber.setDefaultCommand(new HoldArm(m_Climber));
+  }
+
+  public Command getAutonomousCommand() {
+//    TrajectoryConfig config = new TrajectoryConfig(
+//            Units.feetToMeters(.01), Units.feetToMeters(.01));
+//    config.setKinematics(m_DriveBase.getKinematics());
+//
+//    Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
+//      Arrays.asList(new Pose2d(),
+//              new Pose2d(.5, 0, new Rotation2d())),
+////                    new Pose2d(-1.35, 0, new Rotation2d())),
+//      config
+//);
+//
+//    RamseteCommand command = new RamseteCommand(
+//            trajectory,
+//            m_DriveBase::getPose,
+//            new RamseteController(2, .7),
+//            m_DriveBase.getFeedforward(),
+//            m_DriveBase.getKinematics(),
+//            m_DriveBase::getSpeeds,
+//            m_DriveBase.getLeftPIDController(),
+//            m_DriveBase.getRightPIDController(),
+//            m_DriveBase::setOutputVolts,
+//            m_DriveBase
+//    );
+//
+//    return command.andThen(() -> m_DriveBase.setOutputVolts(0, 0)).beforeStarting(() -> System.out.println("Starting Ramsete Command"));
+//    return new StraightDrive(m_DriveBase, -5);
+
+    return new InitLineAuto(m_DriveBase, m_Turret, m_Shooter, m_Conveyor, m_BallElevator);
   }
 
   /**
@@ -70,68 +107,159 @@ public class RobotContainer {
    * {@link edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+
+    new JoystickButton(driveJS, 1)
+            .whileHeld(new ParallelCommandGroup(
+                    new SetCollector(m_Conveyor, .5),
+                    new LoadNextBall(m_BallElevator, .75)
+            )).whenReleased(() -> m_Conveyor.setCollectorMotor(0));
+
+    new JoystickButton(driveJS, 2)
+            .whenPressed(() -> m_Conveyor.toggleCollector());
+
+    new JoystickButton(driveJS, 3)
+            .whenPressed(() -> m_Conveyor.setCollectorAgitator(DoubleSolenoid.Value.kReverse))
+            .whenReleased(() -> m_Conveyor.setCollectorAgitator(DoubleSolenoid.Value.kForward));
+
+    new JoystickButton(driveJS, 4)
+            .whileHeld(new ParallelCommandGroup(
+                    new SetBallElevator(m_BallElevator,-.3),
+                    new SetFlywheel(m_Shooter, -.3)
+            )).whenReleased(() -> m_BallElevator.setBallElevatorMotor(0));
+
+
+
+    new JoystickButton(driveJS, 7)
+            .whileHeld(() -> m_Turret.setTurretRotatorMotor(.5))
+            .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
+
+    new JoystickButton(driveJS, 8)
+            .whileHeld(() -> m_Turret.setTurretRotatorMotor(-.5))
+            .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
+
+    new JoystickButton(driveJS, 11)
+            .whenPressed(new PIDHoodSetPostion(3.738, m_Shooter))
+            .whenReleased(() -> m_Shooter.setHoodMotor(0));
+
+    new JoystickButton(driveJS, 12)
+            .whenPressed(new PIDHoodSetPostion(0, m_Shooter))
+            .whenReleased(() -> m_Shooter.setHoodMotor(0));
+
+    new JoystickButton(driveJS, 5)
+            .whileHeld(() -> m_Climber.setArmPosition(1000))
+            .whenReleased(() -> m_Climber.setClimberMotor(0));
+
+    /*
+    16 ON = WINCH
+    16 OFF = LIFT
+    17 ON = AUTO
+    17 OFF = MAN
+
+    BUTTON BOX - INPUT 3
+     */
+
+    /*
+     * 10 ft - 3.87 Hood Height
+     * 17 ft - 4.5ISH Hood Height
+     * SHOOT
+    * */
+    new JoystickButton(buttonBox, 1)
+            .whileHeld(new ConditionalCommand(
+                    new ConditionalCommand(
+                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 4.5).andThen(new PIDHoodSetPostion(0, m_Shooter)),
+                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 3.85).andThen(new PIDHoodSetPostion(0, m_Shooter)),
+                            getDistanceSelector()
+                    ),
+                new PIDVelocityShooter(m_Shooter, 15000),
+                getShooterSelector()))
+            .whenReleased(() -> m_Shooter.setFlywheelMotor(0));
+
+    /* LOAD */
+    new JoystickButton(buttonBox, 2)
+            .whileHeld(new ParallelCommandGroup(
+                    new SetCollector(m_Conveyor, .5),
+                    new LoadNextBall(m_BallElevator, .75)
+            )).whenReleased(() -> m_Conveyor.setCollectorMotor(0));
+
+    /* TURRET LEFT */
+    new JoystickButton(buttonBox, 7)
+          .whileHeld(new ConditionalCommand(
+                new PIDRotateTurret(m_Turret, 0),
+                new TurretRotate(m_Turret, -.7),
+                getShooterSelector()))
+          .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
+
+    /* TURRET RIGHT */
+    new JoystickButton(buttonBox, 8)
+            .whileHeld(new ConditionalCommand(
+                new PIDRotateTurret(m_Turret, 30000),
+                new TurretRotate(m_Turret, .7),
+                getShooterSelector()))
+            .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
+
+    /* TURRET CENTER */
+    new JoystickButton(buttonBox, 9)
+            .whenPressed(new PIDRotateTurret(m_Turret, 21290))
+            .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
+
+    /* COLLECTOR */
+    new JoystickButton(buttonBox, 10)
+            .whileHeld(new ParallelCommandGroup(
+                    new SetCollector(m_Conveyor, .5),
+                    new LoadNextBall(m_BallElevator, .75)
+            )).whenReleased(() -> m_BallElevator.setBallElevatorMotor(0));
+
+//        new JoystickButton(buttonBox, 10)
+//            .whileHeld(new SetCollector(m_Conveyor, .5))
+//                .whenReleased(() -> m_Conveyor.setCollectorMotor(0));
+
+    /* SHUTTER UP - 11 */
+    new JoystickButton(buttonBox, 11)
+            .whenPressed(new PIDHoodSetPostion(3.85, m_Shooter))
+            .whenReleased(() -> m_Shooter.setHoodMotor(0));
+
+    /* SHUTTER UP - 12 */
+    new JoystickButton(buttonBox, 11)
+            .whenPressed(new PIDHoodSetPostion(0, m_Shooter))
+            .whenReleased(() -> m_Shooter.setHoodMotor(0));
+
+    /* CLIMB LEFT */
+    new JoystickButton(buttonBox, 13)
+            .whileHeld(() -> m_Climber.setTrunionMotor(-.75))
+            .whenReleased(() -> m_Climber.setTrunionMotor(0));
+
+    /* CLIMB RIGHT */
+    new JoystickButton(buttonBox, 14)
+            .whileHeld(() -> m_Climber.setTrunionMotor(.75))
+            .whenReleased(() -> m_Climber.setTrunionMotor(0));
+
+    /* CLIMB UP */
+    new JoystickButton(buttonBox, 15)
+            .whileHeld(new ConditionalCommand(
+                new Winch(m_Climber, .75), // TODO: FIND WINCH DIRECTION
+                new Arm(m_Climber, -.25),
+                getClimberSelector()));
+
+
+    /* CLIMB DOWN */
+    new JoystickButton(buttonBox, 16)
+            .whileHeld(new ConditionalCommand(
+                    new Winch(m_Climber, 0),
+                    new Arm(m_Climber, -.03),
+                    getClimberSelector()));
+
   }
 
-
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-  public Command getAutonomousCommand() {
-        // Create a voltage constraint to ensure we don't accelerate too fast
-        var autoVoltageConstraint =
-        new DifferentialDriveVoltageConstraint(
-            new SimpleMotorFeedforward(DriveConstants.ksVolts,
-                                       DriveConstants.kvVoltSecondsPerMeter,
-                                       DriveConstants.kaVoltSecondsSquaredPerMeter),
-            DriveConstants.kDriveKinematics,
-            10);
-
-    // Create config for trajectory
-    TrajectoryConfig config =
-        new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
-                             AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            // Add kinematics to ensure max speed is actually obeyed
-            .setKinematics(DriveConstants.kDriveKinematics)
-            // Apply the voltage constraint
-            .addConstraint(autoVoltageConstraint);
-
-    // An example trajectory to follow.  All units in meters.
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)),
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(
-            new Translation2d(1, 1),
-            new Translation2d(2, -1)
-        ),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, 0, new Rotation2d(0)),
-        // Pass config
-        config
-    );
-
-    RamseteCommand ramseteCommand = new RamseteCommand(
-        exampleTrajectory,
-        m_robotDrive::getPose,
-        new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
-        new SimpleMotorFeedforward(DriveConstants.ksVolts,
-                                   DriveConstants.kvVoltSecondsPerMeter,
-                                   DriveConstants.kaVoltSecondsSquaredPerMeter),
-        DriveConstants.kDriveKinematics,
-        m_robotDrive::getWheelSpeeds,
-        new PIDController(DriveConstants.kPDriveVel, 0, 0),
-        new PIDController(DriveConstants.kPDriveVel, 0, 0),
-        // RamseteCommand passes volts to the callback
-        m_robotDrive::tankDriveVolts,
-        m_robotDrive
-    );
-
-    // Reset odometry to the starting pose of the trajectory.
-    m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
-
-    // Run path following command, then stop at the end.
-    return ramseteCommand.andThen(() -> m_robotDrive.tankDriveVolts(0, 0));
+  private BooleanSupplier getShooterSelector() {
+    return () -> buttonBox.getRawButton(18);
   }
+
+  private BooleanSupplier getClimberSelector() {
+    return () -> buttonBox.getRawButton(17);
+  }
+
+  private BooleanSupplier getDistanceSelector() {
+    return () -> buttonBox.getRawButton(19);
+  }
+
 }
