@@ -15,11 +15,8 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.*;
-import frc.robot.commands.AutoHelpers.AutoLoad;
-import frc.robot.commands.AutoHelpers.AutoShoot;
 import frc.robot.commands.AutoHelpers.AutoShoot_V2;
 import frc.robot.commands.AutoHelpers.LoadNextBall;
-import frc.robot.commands.Climber.*;
 import frc.robot.subsystems.*;
 
 import java.util.function.BooleanSupplier;
@@ -40,7 +37,6 @@ public class RobotContainer {
   private Turret m_Turret = new Turret();
   private static Shooter m_Shooter = new Shooter();
   private DriveBase m_DriveBase = new DriveBase();
-  private static Climber m_Climber = new Climber();
   private BallElevator m_BallElevator = new BallElevator();
 
   public static NetworkTable limelight = NetworkTableInstance.getDefault().getTable("limelight");
@@ -51,9 +47,6 @@ public class RobotContainer {
     return m_Shooter;
   }
 
-  public static Climber getClimber() {
-    return m_Climber;
-  }
 
   /**
    * The container for the robot.  Contains subsystems, OI devices, and commands.
@@ -66,7 +59,6 @@ public class RobotContainer {
 //    m_Turret.setDefaultCommand(new TurretRotate(m_Turret));
     m_DriveBase.setDefaultCommand(new Drive(m_DriveBase));
 //    m_BallElevator.setDefaultCommand(new LoadNextBall(m_BallElevator));
-    m_Climber.setDefaultCommand(new HoldArm(m_Climber));
   }
 
   public Command getAutonomousCommand() {
@@ -145,9 +137,9 @@ public class RobotContainer {
             .whenPressed(new PIDHoodSetPostion(0, m_Shooter))
             .whenReleased(() -> m_Shooter.setHoodMotor(0));
 
-    new JoystickButton(driveJS, 5)
-            .whileHeld(() -> m_Climber.setArmPosition(1000))
-            .whenReleased(() -> m_Climber.setClimberMotor(0));
+//     new JoystickButton(driveJS, 5)
+//             .whileHeld(() -> m_Climber.setArmPosition(1000))
+//             .whenReleased(() -> m_Climber.setClimberMotor(0));
 
     /*
     16 ON = WINCH
@@ -223,30 +215,30 @@ public class RobotContainer {
             .whenPressed(new PIDHoodSetPostion(0, m_Shooter))
             .whenReleased(() -> m_Shooter.setHoodMotor(0));
 
-    /* CLIMB LEFT */
-    new JoystickButton(buttonBox, 13)
-            .whileHeld(() -> m_Climber.setTrunionMotor(-.75))
-            .whenReleased(() -> m_Climber.setTrunionMotor(0));
+//     /* CLIMB LEFT */
+//     new JoystickButton(buttonBox, 13)
+//             .whileHeld(() -> m_Climber.setTrunionMotor(-.75))
+//             .whenReleased(() -> m_Climber.setTrunionMotor(0));
 
-    /* CLIMB RIGHT */
-    new JoystickButton(buttonBox, 14)
-            .whileHeld(() -> m_Climber.setTrunionMotor(.75))
-            .whenReleased(() -> m_Climber.setTrunionMotor(0));
+//     /* CLIMB RIGHT */
+//     new JoystickButton(buttonBox, 14)
+//             .whileHeld(() -> m_Climber.setTrunionMotor(.75))
+//             .whenReleased(() -> m_Climber.setTrunionMotor(0));
 
-    /* CLIMB UP */
-    new JoystickButton(buttonBox, 15)
-            .whileHeld(new ConditionalCommand(
-                new Winch(m_Climber, .75), // TODO: FIND WINCH DIRECTION
-                new Arm(m_Climber, -.25),
-                getClimberSelector()));
+//     /* CLIMB UP */
+//     new JoystickButton(buttonBox, 15)
+//             .whileHeld(new ConditionalCommand(
+//                 new Winch(m_Climber, .75),
+//                 new Arm(m_Climber, -.25),
+//                 getClimberSelector()));
 
 
-    /* CLIMB DOWN */
-    new JoystickButton(buttonBox, 16)
-            .whileHeld(new ConditionalCommand(
-                    new Winch(m_Climber, 0),
-                    new Arm(m_Climber, -.03),
-                    getClimberSelector()));
+//     /* CLIMB DOWN */
+//     new JoystickButton(buttonBox, 16)
+//             .whileHeld(new ConditionalCommand(
+//                     new Winch(m_Climber, 0),
+//                     new Arm(m_Climber, -.03),
+//                     getClimberSelector()));
 
   }
 

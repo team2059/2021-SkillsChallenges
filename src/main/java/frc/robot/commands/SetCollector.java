@@ -29,7 +29,7 @@ public class SetCollector extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
-        RobotContainer.getClimber().setTrunionMotor(0);
+        // RobotContainer.getClimber().setTrunionMotor(0);
     }
 
     @Override
