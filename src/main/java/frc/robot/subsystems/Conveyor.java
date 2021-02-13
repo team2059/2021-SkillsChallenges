@@ -13,7 +13,7 @@ public class Conveyor extends HHSubsystemBase {
     WPI_VictorSPX collectorMotor = new WPI_VictorSPX(ConveyorConstants.CollectorMotor);
     DoubleSolenoid collectorSolenoid = new DoubleSolenoid(0, 1);
     DoubleSolenoid collectorAgitator = new DoubleSolenoid(2, 3);
-
+    WPI_VictorSPX agitatorMotor = new WPI_VictorSPX(ConveyorConstants.agitatorMotorPort);
 
     public Conveyor() {
         super("Conveyor");
@@ -26,6 +26,9 @@ public class Conveyor extends HHSubsystemBase {
 
     @Override
     public void periodic() {
+    }
+    public void setAgitator(double speed){
+        agitatorMotor.set(speed);
     }
 
     public void setCollectorMotor(double speed) {

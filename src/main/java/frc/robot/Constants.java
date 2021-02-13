@@ -116,6 +116,7 @@ public final class Constants {
         // TODO Change collector and Trunion motor ports
         public static final int BallElevatorTalonPort = 21;
         public static final int CollectorMotor = 18;
+        public static final int agitatorMotorPort = 25;
     }
 
     public static final class FieldConstants {

@@ -25,12 +25,16 @@ public class SetCollector extends CommandBase {
     public void execute() {
 //        RobotContainer.getClimber().setTrunionMotor(speed); // TODO: REPLACE THE TRUNION MOTOR SO THE COLLECTOR WORKS ON THE RIGHT PORT
         m_Conveyor.setCollectorMotor(speed);
+        m_Conveyor.setAgitator(speed);
     }
 
     @Override
     public void end(boolean interrupted) {
         // RobotContainer.getClimber().setTrunionMotor(0);
+        m_Conveyor.setCollectorMotor(0);
+        m_Conveyor.setAgitator(0);
     }
+
 
     @Override
     public boolean isFinished() {
