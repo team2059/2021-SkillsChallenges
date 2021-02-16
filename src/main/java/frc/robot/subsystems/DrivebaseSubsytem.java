@@ -65,8 +65,8 @@ public class DrivebaseSubsytem extends SubsystemBase {
 
     m_leftEncoder.setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
     m_rightEncoder.setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
-    m_rightEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
-    m_leftEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
+    m_rightEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation / 60);
+    m_leftEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation / 60);
 
     rightFront.setInverted(true);
     rightBack.setInverted(true);
@@ -94,6 +94,9 @@ public class DrivebaseSubsytem extends SubsystemBase {
 
     SmartDashboard.putNumber("Gyro Angle", -m_gyro.getAngle());
     SmartDashboard.putNumber("Gyro Heading", getHeading());
+
+    SmartDashboard.putNumber("Current Left Speed", m_leftEncoder.getVelocity());
+    SmartDashboard.putNumber("Current Right Speed", m_rightEncoder.getVelocity());
 
     System.out.println(getPose());
   }
@@ -133,6 +136,7 @@ public class DrivebaseSubsytem extends SubsystemBase {
    * @param rot the commanded rotation
    */
   public void arcadeDrive(double fwd, double rot) {
+    // System.out.println("fws power" + fwd);
     m_drive.arcadeDrive(fwd, rot);
   }
 

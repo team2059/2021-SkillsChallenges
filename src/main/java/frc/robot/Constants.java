@@ -52,11 +52,11 @@ public final class Constants {
             // // Assumes the encoders are directly mounted on the wheel shafts
             // (kWheelDiameterMeters * Math.PI * 12.57) / kEncoderCPR;
     
-        public static final double ksVolts = 0.101;
-        public static final double kvVoltSecondsPerMeter = 1.0;
-        public static final double kaVoltSecondsSquaredPerMeter = 0.0782;
+        public static final double ksVolts = 0.045;
+        public static final double kvVoltSecondsPerMeter = 3.36;
+        public static final double kaVoltSecondsSquaredPerMeter = 0.241;
     
-        public static final double kPDriveVel = .3;
+        public static final double kPDriveVel = 3;
 
       }
     

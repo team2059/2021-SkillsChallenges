@@ -174,8 +174,6 @@ public class RamseteCmd extends CommandBase {
     SmartDashboard.putNumber("Left Target", leftSpeedSetpoint);
     SmartDashboard.putNumber("Right Target", rightSpeedSetpoint);
 
-    SmartDashboard.putNumber("Current Left Speed", m_prevSpeeds.leftMetersPerSecond);
-    SmartDashboard.putNumber("Current Right Speed", m_prevSpeeds.rightMetersPerSecond);
 
     double leftOutput;
     double rightOutput;
