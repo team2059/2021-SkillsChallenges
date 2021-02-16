@@ -4,6 +4,7 @@ import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
+import com.revrobotics.CANSparkMax.IdleMode;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -12,7 +13,9 @@ import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpiutil.math.MathUtil;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 
@@ -50,9 +53,29 @@ public class DrivebaseSubsytem extends SubsystemBase {
    * Creates a new DriveSubsystem.
    */
   public DrivebaseSubsytem() {
-    // Sets the distance per pulse for the encoders
-    m_leftEncoder.setPositionConversionFactor(DriveConstants.kEncoderDistancePerPulse);
-    m_rightEncoder.setPositionConversionFactor(DriveConstants.kEncoderDistancePerPulse);
+    leftFront.restoreFactoryDefaults();
+    rightFront.restoreFactoryDefaults();
+
+    leftFront.setIdleMode(IdleMode.kCoast);
+    leftBack.setIdleMode(IdleMode.kCoast);
+    rightFront.setIdleMode(IdleMode.kCoast);
+    rightBack.setIdleMode(IdleMode.kCoast);
+
+    m_gyro.reset();
+
+    m_leftEncoder.setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
+    m_rightEncoder.setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
+    m_rightEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
+    m_leftEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
+
+    rightFront.setInverted(true);
+    rightBack.setInverted(true);
+
+
+    System.out.println(m_leftEncoder.getPositionConversionFactor());
+    System.out.println(m_leftEncoder.getVelocityConversionFactor());
+    System.out.println(m_leftEncoder.getCountsPerRevolution());
+    System.out.println(m_leftEncoder.getMeasurementPeriod());
 
     resetEncoders();
     m_odometry = new DifferentialDriveOdometry(m_gyro.getRotation2d());
@@ -63,6 +86,16 @@ public class DrivebaseSubsytem extends SubsystemBase {
     // Update the odometry in the periodic block
     m_odometry.update(m_gyro.getRotation2d(), m_leftEncoder.getPosition(),
                       m_rightEncoder.getPosition());
+
+    SmartDashboard.putNumber("REncoder Pos", m_rightEncoder.getPosition());
+    SmartDashboard.putNumber("REncoder Vel", m_rightEncoder.getVelocity());
+    SmartDashboard.putNumber("LEncoder Pos", m_leftEncoder.getPosition());
+    SmartDashboard.putNumber("LEncoder Vel", m_leftEncoder.getVelocity());
+
+    SmartDashboard.putNumber("Gyro Angle", -m_gyro.getAngle());
+    SmartDashboard.putNumber("Gyro Heading", getHeading());
+
+    System.out.println(getPose());
   }
 
   /**
@@ -110,8 +143,11 @@ public class DrivebaseSubsytem extends SubsystemBase {
    * @param rightVolts the commanded right output
    */
   public void tankDriveVolts(double leftVolts, double rightVolts) {
+    System.out.println(leftVolts + " " + rightVolts);
+    // leftVolts = MathUtil.clamp(leftVolts, -2, 2);
+    // rightVolts = MathUtil.clamp(rightVolts, -2, 2);
     m_leftMotors.setVoltage(leftVolts);
-    m_rightMotors.setVoltage(-rightVolts);
+    m_rightMotors.setVoltage(rightVolts);
     m_drive.feed();
   }
 
