@@ -7,13 +7,17 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
+
 /**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
- * constants.  This class should not be used for any other purpose.  All constants should be
- * declared globally (i.e. public static).  Do not put anything functional in this class.
+ * The Constants class provides a convenient place for teams to hold robot-wide
+ * numerical or boolean constants. This class should not be used for any other
+ * purpose. All constants should be declared globally (i.e. public static). Do
+ * not put anything functional in this class.
  *
- * <p>It is advised to statically import this class (or one of its inner classes) wherever the
- * constants are needed, to reduce verbosity.
+ * <p>
+ * It is advised to statically import this class (or one of its inner classes)
+ * wherever the constants are needed, to reduce verbosity.
  */
 public final class Constants {
 
@@ -37,6 +41,22 @@ public final class Constants {
             public static final double kTurnI = 0.0;
             public static final double kTurnD = 0;
         }
+
+        public static final double kTrackwidthMeters = .53;
+        public static final DifferentialDriveKinematics kDriveKinematics =
+            new DifferentialDriveKinematics(kTrackwidthMeters);
+    
+        public static final double kEncoderCPR = 4096;
+        public static final double kWheelDiameterMeters = 0.1524;
+        public static final double kLinearDistancePerMotorRotation = 1 / 10.444;
+            // // Assumes the encoders are directly mounted on the wheel shafts
+            // (kWheelDiameterMeters * Math.PI * 12.57) / kEncoderCPR;
+    
+        public static final double ksVolts = 0.045;
+        public static final double kvVoltSecondsPerMeter = 3.36;
+        public static final double kaVoltSecondsSquaredPerMeter = 0.241;
+    
+        public static final double kPDriveVel = 3;
     }
 
     public static final class TurretConstants {
