@@ -10,22 +10,41 @@ package frc.robot;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.controller.RamseteController;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryUtil;
+import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.DriveConstants;
 import frc.robot.commands.*;
 import frc.robot.commands.AutoHelpers.AutoShoot_V2;
 import frc.robot.commands.AutoHelpers.LoadNextBall;
 import frc.robot.subsystems.*;
+import frc.robot.TrajectoryLoader;
+import edu.wpi.first.wpilibj.controller.PIDController;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 
 /**
- * This class is where the bulk of the robot should be declared.  Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls).  Instead, the structure of the robot
- * (including subsystems, commands, and button mappings) should be declared here.
+ * This class is where the bulk of the robot should be declared. Since
+ * Command-based is a "declarative" paradigm, very little robot logic should
+ * actually be handled in the {@link Robot} periodic methods (other than the
+ * scheduler calls). Instead, the structure of the robot (including subsystems,
+ * commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
 
@@ -36,60 +55,94 @@ public class RobotContainer {
   private Conveyor m_Conveyor = new Conveyor();
   private Turret m_Turret = new Turret();
   private static Shooter m_Shooter = new Shooter();
-  private DriveBase m_DriveBase = new DriveBase();
+  private static DriveBase m_DriveBase = new DriveBase();
   private BallElevator m_BallElevator = new BallElevator();
 
   public static NetworkTable limelight = NetworkTableInstance.getDefault().getTable("limelight");
   public static NetworkTable limelightBall = NetworkTableInstance.getDefault().getTable("limelight-ball");
 
-
   public static Shooter getShooter() {
     return m_Shooter;
   }
 
+  public static DriveBase getDrive() {
+    return m_DriveBase;
+  }
 
   /**
-   * The container for the robot.  Contains subsystems, OI devices, and commands.
+   * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
 
     // Default Commands
-//    m_Turret.setDefaultCommand(new TurretRotate(m_Turret));
+    // m_Turret.setDefaultCommand(new TurretRotate(m_Turret));
     m_DriveBase.setDefaultCommand(new Drive(m_DriveBase));
-//    m_BallElevator.setDefaultCommand(new LoadNextBall(m_BallElevator));
+    // m_BallElevator.setDefaultCommand(new LoadNextBall(m_BallElevator));
   }
 
-  public Command getAutonomousCommand() {
-//    TrajectoryConfig config = new TrajectoryConfig(
-//            Units.feetToMeters(.01), Units.feetToMeters(.01));
-//    config.setKinematics(m_DriveBase.getKinematics());
-//
-//    Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-//      Arrays.asList(new Pose2d(),
-//              new Pose2d(.5, 0, new Rotation2d())),
-////                    new Pose2d(-1.35, 0, new Rotation2d())),
-//      config
-//);
-//
-//    RamseteCommand command = new RamseteCommand(
-//            trajectory,
-//            m_DriveBase::getPose,
-//            new RamseteController(2, .7),
-//            m_DriveBase.getFeedforward(),
-//            m_DriveBase.getKinematics(),
-//            m_DriveBase::getSpeeds,
-//            m_DriveBase.getLeftPIDController(),
-//            m_DriveBase.getRightPIDController(),
-//            m_DriveBase::setOutputVolts,
-//            m_DriveBase
-//    );
-//
-//    return command.andThen(() -> m_DriveBase.setOutputVolts(0, 0)).beforeStarting(() -> System.out.println("Starting Ramsete Command"));
-//    return new StraightDrive(m_DriveBase, -5);
+  public Command getAutonomousCommand() throws IOException {
+    // m_robotDrive.setMaxOutput(.2);
 
-    return new InitLineAuto(m_DriveBase, m_Turret, m_Shooter, m_Conveyor, m_BallElevator);
+    // Create a voltage constraint to ensure we don't accelerate too fast
+    var autoVoltageConstraint =
+    new DifferentialDriveVoltageConstraint(
+            new SimpleMotorFeedforward(DriveConstants.ksVolts,
+                                      DriveConstants.kvVoltSecondsPerMeter,
+                                      DriveConstants.kaVoltSecondsSquaredPerMeter),
+            DriveConstants.kDriveKinematics,
+            10);
+
+    // Create config for trajectory
+
+    TrajectoryConfig config =
+        new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond,
+                             AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+            // Add kinematics to ensure max speed is actually obeyed
+            .setKinematics(DriveConstants.kDriveKinematics)
+            // Ensure not reversed
+            .setReversed(false)
+            // Apply the voltage constraint
+            .addConstraint(autoVoltageConstraint);
+
+    Trajectory exampleTrajectory =
+        TrajectoryGenerator.generateTrajectory(
+            // Start at the origin facing the +X direction
+            new Pose2d(0, 0, new Rotation2d(0)),
+            // Pass through these two interior waypoints, making an 's' curve path
+            List.of(new Translation2d(2, 0), new Translation2d(4, 0)),
+            // End 3 meters straight ahead of where we started, facing forward
+            new Pose2d(6, 0, new Rotation2d(0)),
+            // Pass config
+            config);
+    
+    Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/main.wpilib.json");
+    Trajectory skillsChallenge1 = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+
+    RamseteCommand ramseteCommand = new RamseteCommand(
+        skillsChallenge1,
+        m_DriveBase::getPose,
+        new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
+        new SimpleMotorFeedforward(DriveConstants.ksVolts,
+                                   DriveConstants.kvVoltSecondsPerMeter,
+                                   DriveConstants.kaVoltSecondsSquaredPerMeter),
+        DriveConstants.kDriveKinematics,
+        m_DriveBase::getWheelSpeeds,
+        new PIDController(DriveConstants.kPDriveVel, 0, 0),
+        new PIDController(DriveConstants.kPDriveVel, 0, 0),
+        // RamseteCommand passes volts to the callback
+        m_DriveBase::tankDriveVolts,
+        m_DriveBase
+    );
+
+
+    m_DriveBase.reset();
+    // Reset odometry to the starting pose of the trajectory.
+    m_DriveBase.resetOdometry(skillsChallenge1.getInitialPose());
+
+    // Run path following command, then stop at the end.
+    return ramseteCommand.andThen(() -> m_DriveBase.tankDriveVolts(0, 0));
   }
 
   /**
@@ -130,8 +183,8 @@ public class RobotContainer {
             .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
 
     new JoystickButton(driveJS, 11)
-            .whenPressed(new PIDHoodSetPostion(3.738, m_Shooter))
-            .whenReleased(() -> m_Shooter.setHoodMotor(0));
+            .whenPressed(() -> m_DriveBase.tankDriveVolts(4, 4))
+            .whenReleased(() -> m_DriveBase.tankDriveVolts(0, 0));
 
     new JoystickButton(driveJS, 12)
             .whenPressed(new PIDHoodSetPostion(0, m_Shooter))

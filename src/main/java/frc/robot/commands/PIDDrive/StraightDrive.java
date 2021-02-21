@@ -11,7 +11,7 @@ public class StraightDrive extends PIDCommand {
                 new PIDController(Constants.DriveConstants.PID.kP, Constants.DriveConstants.PID.kI, Constants.DriveConstants.PID.kD),
                 driveBase::getStraightDistance,
                 setpoint,
-                output -> driveBase.tankDrive(output, output),
+                output -> driveBase.tankDriveVolts(output, output),
                 driveBase
         );
 

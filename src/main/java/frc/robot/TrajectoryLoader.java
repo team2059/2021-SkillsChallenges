@@ -16,14 +16,14 @@ import edu.wpi.first.wpilibj.trajectory.TrajectoryUtil;
 
 public class TrajectoryLoader {
 
-    public static Trajectory loadTrajectoryFromFile(String filename) {
-        Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/" + filename);
+    public static Trajectory loadTrajectoryFromFile(Path trajectoryPath2) {
+        Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/" + trajectoryPath2);
         Trajectory trajectory = null;
 
         try {
             trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
         } catch (IOException e) {
-            DriverStation.reportError("Unable to open trajectory: " + filename, e.getStackTrace());
+            DriverStation.reportError("Unable to open trajectory: " + trajectoryPath2, e.getStackTrace());
         }
 
         return trajectory;

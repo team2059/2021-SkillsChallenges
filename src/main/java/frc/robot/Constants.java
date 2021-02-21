@@ -29,8 +29,8 @@ public final class Constants {
         public static final int rightPrimarySlave = 15;
         public static final int rightSecondarySlave = 16;
 
-        public static final double kGearRatio = (double) 625 / 49;
-        public static final double kWheelRadiusInches = 3.0;
+        // public static final double kGearRatio = 5.34;
+        // public static final double kWheelRadiusInches = 3.0;
 
         public final class PID {
             public static final double kP = 0.05;
@@ -42,21 +42,31 @@ public final class Constants {
             public static final double kTurnD = 0;
         }
 
-        public static final double kTrackwidthMeters = .53;
+        public static final double kTrackwidthMeters = .6223;
         public static final DifferentialDriveKinematics kDriveKinematics =
             new DifferentialDriveKinematics(kTrackwidthMeters);
     
         public static final double kEncoderCPR = 4096;
         public static final double kWheelDiameterMeters = 0.1524;
-        public static final double kLinearDistancePerMotorRotation = 1 / 10.444;
+        public static final double kLinearDistancePerMotorRotation = 1 / 10.64;
+        public static final double fudgeFactor = 1.0499;
             // // Assumes the encoders are directly mounted on the wheel shafts
             // (kWheelDiameterMeters * Math.PI * 12.57) / kEncoderCPR;
     
-        public static final double ksVolts = 0.045;
-        public static final double kvVoltSecondsPerMeter = 3.36;
-        public static final double kaVoltSecondsSquaredPerMeter = 0.241;
+        public static final double ksVolts = 0.216;
+        public static final double kvVoltSecondsPerMeter = 1.53;
+        public static final double kaVoltSecondsSquaredPerMeter = 0.272;
     
         public static final double kPDriveVel = 3;
+    }
+
+    public static final class AutoConstants {
+        public static final double kMaxSpeedMetersPerSecond = 1;
+        public static final double kMaxAccelerationMetersPerSecondSquared = .25;
+    
+        // Reasonable baseline values for a RAMSETE follower in units of meters and seconds
+        public static final double kRamseteB = 2;
+        public static final double kRamseteZeta = 0.7;
     }
 
     public static final class TurretConstants {

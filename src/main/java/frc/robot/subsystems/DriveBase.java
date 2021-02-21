@@ -93,10 +93,13 @@ public class DriveBase extends HHSubsystemBase {
         rightPrimarySlave.setInverted(false);
         rightSecondarySlave.setInverted(false);
 
-        leftMaster.getEncoder().setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
-        rightMaster.getEncoder().setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
+        m_leftEncoder.setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
+        m_rightEncoder.setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
+        m_leftEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation / 60);
+        m_rightEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation / 60);
         leftMaster.getEncoder().setPosition(0);
         rightMaster.getEncoder().setPosition(0);
+
 
         differentialDrive.setSafetyEnabled(false);
         m_odometry = new DifferentialDriveOdometry(gyro.getRotation2d());
@@ -104,31 +107,24 @@ public class DriveBase extends HHSubsystemBase {
 
     @Override
     public void periodic() {
-        m_odometry.update(gyro.getRotation2d(), m_leftEncoder.getPosition(), m_rightEncoder.getPosition());
-        SmartDashboard.putNumber("Gyro Angle", -gyro.getAngle());
+        m_odometry.update(Rotation2d.fromDegrees(getGyroAngle()), m_leftEncoder.getPosition(),
+            m_rightEncoder.getPosition());
+        SmartDashboard.putNumber("Gyro Angle", getGyroAngle());
         SmartDashboard.putNumber("Gyro Heading", getHeading());
-        SmartDashboard.putNumber("Left Ticks", leftMaster.getEncoder().getPosition());
-        SmartDashboard.putNumber("Right Ticks", rightMaster.getEncoder().getPosition());
+        SmartDashboard.putNumber("Left Ticks", m_leftEncoder.getPosition());
+        SmartDashboard.putNumber("Right Ticks", m_rightEncoder.getPosition());
+        SmartDashboard.putNumber("Left Velocity", m_leftEncoder.getVelocity());
+        SmartDashboard.putNumber("Right Velocity", m_rightEncoder.getVelocity());
         SmartDashboard.putNumber("Ball Offset", getBallOffset());
+        // System.out.println(getPose());
     }
 
     public double getGyroAngle() {
         return gyro.getAngle();
     }
 
-    public DifferentialDriveWheelSpeeds getSpeeds() {
-        return new DifferentialDriveWheelSpeeds(
-                leftMaster.getEncoder().getVelocity() / DriveConstants.kGearRatio * 2 * Math.PI * Units.inchesToMeters(DriveConstants.kWheelRadiusInches) / 60,
-                rightMaster.getEncoder().getVelocity() / DriveConstants.kGearRatio * 2 * Math.PI * Units.inchesToMeters(DriveConstants.kWheelRadiusInches) / 60
-        );
-    }
-
     public DifferentialDriveKinematics getKinematics() {
         return kinematics;
-    }
-
-    public Pose2d getPose() {
-        return pose;
     }
 
     public SimpleMotorFeedforward getFeedforward() {
@@ -158,19 +154,47 @@ public class DriveBase extends HHSubsystemBase {
         differentialDrive.arcadeDrive(RobotContainer.driveJS.getRawAxis(0), RobotContainer.driveJS.getRawAxis(1));
     }
 
+    public void resetOdometry(Pose2d pose) {
+        resetEncoders();
+        m_odometry.resetPosition(pose, gyro.getRotation2d());
+    }
+
+    /**
+     * Returns the currently-estimated pose of the robot.
+     *
+     * @return The pose.
+     */
+    public Pose2d getPose() {
+        return m_odometry.getPoseMeters();
+    }
+
+    /**
+     * Returns the current wheel speeds of the robot.
+     *
+     * @return The current wheel speeds.
+     */
+    public DifferentialDriveWheelSpeeds getWheelSpeeds() {
+        return new DifferentialDriveWheelSpeeds(m_leftEncoder.getVelocity(), m_rightEncoder.getVelocity());
+    }
+
     public void arcadeDrive(double xSpeed, double zRotation) {
-        System.out.println(String.format("xSpeed is %f, zRotation is %f", xSpeed, zRotation));
+        // System.out.println(String.format("xSpeed is %f, zRotation is %f", xSpeed, zRotation));
         differentialDrive.arcadeDrive(-xSpeed, zRotation);
     }
 
-    public void tankDrive(double l, double r) {
-
-        l = MathUtil.clamp(l, -.5, .5);
-        r = MathUtil.clamp(r, -.5, .5);
-
-        leftMotors.set(l);
-        rightMotors.set(r);
+    /**
+     * Controls the left and right sides of the drive directly with voltages.
+     *
+     * @param leftVolts  the commanded left output
+     * @param rightVolts the commanded right output
+     */
+    public void tankDriveVolts(double leftVolts, double rightVolts) {
+        System.out.println(leftVolts + " " + rightVolts);
+        leftMotors.setVoltage(leftVolts);
+        rightMotors.setVoltage(rightVolts);
+        differentialDrive.feed();
     }
+
 
     public double getBallOffset() {
         return table.getEntry("tx").getDouble(0.0);

@@ -73,7 +73,12 @@ public class Robot extends TimedRobot {
       }
     } catch (Throwable t) {
       CrashTracker.logThrowableCrash(t);
-      throw t;
+      try {
+        throw t;
+      } catch (Throwable e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
   }
 
@@ -91,6 +96,8 @@ public class Robot extends TimedRobot {
       RobotContainer.limelightBall.getEntry("ledMode").setNumber(1);
 
       RobotContainer.limelight.getEntry("ledMode").setNumber(1);
+
+      RobotContainer.getDrive().resetEncoders();
 
 
       if (m_autonomousCommand != null) {

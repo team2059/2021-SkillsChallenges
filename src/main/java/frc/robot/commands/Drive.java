@@ -26,7 +26,7 @@ public class Drive extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
-        drivebase.tankDrive(0, 0);
+        drivebase.tankDriveVolts(0, 0);
     }
 
     @Override
