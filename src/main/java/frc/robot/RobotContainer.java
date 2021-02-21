@@ -111,17 +111,17 @@ public class RobotContainer {
             // Start at the origin facing the +X direction
             new Pose2d(0, 0, new Rotation2d(0)),
             // Pass through these two interior waypoints, making an 's' curve path
-            List.of(new Translation2d(2, 0), new Translation2d(4, 0)),
+            List.of(new Translation2d(1, 1), new Translation2d(2, 2)),
             // End 3 meters straight ahead of where we started, facing forward
-            new Pose2d(6, 0, new Rotation2d(0)),
+            new Pose2d(3, 3, new Rotation2d(0)),
             // Pass config
             config);
     
-    Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/main.wpilib.json");
+    Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/goodPath7.wpilib.json");
     Trajectory skillsChallenge1 = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
 
     RamseteCommand ramseteCommand = new RamseteCommand(
-        skillsChallenge1,
+        exampleTrajectory,
         m_DriveBase::getPose,
         new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
         new SimpleMotorFeedforward(DriveConstants.ksVolts,
@@ -139,7 +139,7 @@ public class RobotContainer {
 
     m_DriveBase.reset();
     // Reset odometry to the starting pose of the trajectory.
-    m_DriveBase.resetOdometry(skillsChallenge1.getInitialPose());
+    m_DriveBase.resetOdometry(exampleTrajectory.getInitialPose());
 
     // Run path following command, then stop at the end.
     return ramseteCommand.andThen(() -> m_DriveBase.tankDriveVolts(0, 0));

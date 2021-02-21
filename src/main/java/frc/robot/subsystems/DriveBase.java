@@ -120,7 +120,7 @@ public class DriveBase extends HHSubsystemBase {
     }
 
     public double getGyroAngle() {
-        return gyro.getAngle();
+        return -gyro.getAngle();
     }
 
     public DifferentialDriveKinematics getKinematics() {
@@ -151,7 +151,7 @@ public class DriveBase extends HHSubsystemBase {
     }
 
     public void drive(){
-        differentialDrive.arcadeDrive(RobotContainer.driveJS.getRawAxis(0), RobotContainer.driveJS.getRawAxis(1));
+        differentialDrive.arcadeDrive(-RobotContainer.driveJS.getRawAxis(0), -RobotContainer.driveJS.getRawAxis(1));
     }
 
     public void resetOdometry(Pose2d pose) {
@@ -190,6 +190,7 @@ public class DriveBase extends HHSubsystemBase {
      */
     public void tankDriveVolts(double leftVolts, double rightVolts) {
         System.out.println(leftVolts + " " + rightVolts);
+        System.out.println(getPose());
         leftMotors.setVoltage(leftVolts);
         rightMotors.setVoltage(rightVolts);
         differentialDrive.feed();
