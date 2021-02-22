@@ -151,7 +151,7 @@ public class DriveBase extends HHSubsystemBase {
     }
 
     public void drive(){
-        differentialDrive.arcadeDrive(-RobotContainer.driveJS.getRawAxis(0), -RobotContainer.driveJS.getRawAxis(1));
+        differentialDrive.arcadeDrive(-RobotContainer.driveJS.getRawAxis(2), -RobotContainer.driveJS.getRawAxis(1));
     }
 
     public void resetOdometry(Pose2d pose) {
