@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.Constants.AutoConstants;
@@ -76,115 +77,148 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         m_robotDrive.setMaxOutput(.2);
 
-        Trajectory seg1 = new Trajectory();
-        Trajectory seg2 = new Trajectory();
-        Trajectory seg3 = new Trajectory();
-        Trajectory seg4 = new Trajectory();
+        Trajectory slalomTraj = new Trajectory();
+        Path slalomTrajPath = Filesystem.getDeployDirectory().toPath().resolve("paths/slalomPath/infinity.wpilib.json");
 
-        Path seg1Path = Filesystem.getDeployDirectory().toPath().resolve("paths/bouncePath/seg1.wpilib.json");
-        Path seg2Path = Filesystem.getDeployDirectory().toPath().resolve("paths/bouncePath/seg2.wpilib.json");
-        Path seg3Path = Filesystem.getDeployDirectory().toPath().resolve("paths/bouncePath/seg3.wpilib.json");
-        Path seg4Path = Filesystem.getDeployDirectory().toPath().resolve("paths/bouncePath/seg4.wpilib.json");
-        
         try {
-            seg1 = TrajectoryUtil.fromPathweaverJson(seg1Path);
+            slalomTraj = TrajectoryUtil.fromPathweaverJson(slalomTrajPath);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             System.out.println("Could not find segment 1");
         }
-        try {
-            seg2 = TrajectoryUtil.fromPathweaverJson(seg2Path);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            System.out.println("Could not find segment 2");
-        }
-        try {
-            seg3 = TrajectoryUtil.fromPathweaverJson(seg3Path);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            System.out.println("Could not find segment 3");
-        }
-        try {
-            seg4 = TrajectoryUtil.fromPathweaverJson(seg4Path);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            System.out.println("Could not find segment 4");
-        }
 
-        final Pose2d seg2InitPose = seg2.getInitialPose();
-        final Pose2d seg3InitPose = seg3.getInitialPose();
-        final Pose2d seg4InitPose = seg4.getInitialPose();
+        final Pose2d slalomInitPose = slalomTraj.getInitialPose();
 
-    SequentialCommandGroup bouncePath = new SequentialCommandGroup(
-        new RamseteCmd(
-            seg1,
-            m_robotDrive::getPose,
-            new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
-            new SimpleMotorFeedforward(DriveConstants.ksVolts,
-                                    DriveConstants.kvVoltSecondsPerMeter,
-                                    DriveConstants.kaVoltSecondsSquaredPerMeter),
-            DriveConstants.kDriveKinematics,
-            m_robotDrive::getWheelSpeeds,
-            new PIDController(DriveConstants.kPDriveVel, 0, 0),
-            new PIDController(DriveConstants.kPDriveVel, 0, 0),
-            // RamseteCommand passes volts to the callback
-            m_robotDrive::tankDriveVolts,
-            m_robotDrive
-        ),
-        new InstantCommand(() -> m_robotDrive.resetOdometry(seg2InitPose)),
-        new RamseteCmd(
-            seg2,
-            m_robotDrive::getPose,
-            new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
-            new SimpleMotorFeedforward(DriveConstants.ksVolts,
-                                    DriveConstants.kvVoltSecondsPerMeter,
-                                    DriveConstants.kaVoltSecondsSquaredPerMeter),
-            DriveConstants.kDriveKinematics,
-            m_robotDrive::getWheelSpeeds,
-            new PIDController(DriveConstants.kPDriveVel, 0, 0),
-            new PIDController(DriveConstants.kPDriveVel, 0, 0),
-            // RamseteCommand passes volts to the callback
-            m_robotDrive::tankDriveVolts,
-            m_robotDrive
-        ),
-        new InstantCommand(() -> m_robotDrive.resetOdometry(seg3InitPose)),
-        new RamseteCmd(
-            seg3,
-            m_robotDrive::getPose,
-            new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
-            new SimpleMotorFeedforward(DriveConstants.ksVolts,
-                                    DriveConstants.kvVoltSecondsPerMeter,
-                                    DriveConstants.kaVoltSecondsSquaredPerMeter),
-            DriveConstants.kDriveKinematics,
-            m_robotDrive::getWheelSpeeds,
-            new PIDController(DriveConstants.kPDriveVel, 0, 0),
-            new PIDController(DriveConstants.kPDriveVel, 0, 0),
-            // RamseteCommand passes volts to the callback
-            m_robotDrive::tankDriveVolts,
-            m_robotDrive
-        ),
-        new InstantCommand(() -> m_robotDrive.resetOdometry(seg4InitPose)),
-        new RamseteCmd(
-            seg4,
-            m_robotDrive::getPose,
-            new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
-            new SimpleMotorFeedforward(DriveConstants.ksVolts,
-                                    DriveConstants.kvVoltSecondsPerMeter,
-                                    DriveConstants.kaVoltSecondsSquaredPerMeter),
-            DriveConstants.kDriveKinematics,
-            m_robotDrive::getWheelSpeeds,
-            new PIDController(DriveConstants.kPDriveVel, 0, 0),
-            new PIDController(DriveConstants.kPDriveVel, 0, 0),
-            // RamseteCommand passes volts to the callback
-            m_robotDrive::tankDriveVolts,
-            m_robotDrive
-        )
-    );
+        m_robotDrive.resetOdometry(slalomTraj.getInitialPose());
 
-    // Reset odometry to the starting pose of the trajectory.
-    m_robotDrive.resetOdometry(seg1.getInitialPose());
+        RamseteCommand slalom = new RamseteCommand(
+            slalomTraj,
+            m_robotDrive::getPose,
+            new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
+            new SimpleMotorFeedforward(DriveConstants.ksVolts,
+                                    DriveConstants.kvVoltSecondsPerMeter,
+                                    DriveConstants.kaVoltSecondsSquaredPerMeter),
+            DriveConstants.kDriveKinematics,
+            m_robotDrive::getWheelSpeeds,
+            new PIDController(DriveConstants.kPDriveVel, 0, 0),
+            new PIDController(DriveConstants.kPDriveVel, 0, 0),
+            // RamseteCommand passes volts to the callback
+            m_robotDrive::tankDriveVolts,
+            m_robotDrive
+        );
+
+        m_robotDrive.resetOdometry(slalomTraj.getInitialPose());
+
+
+    //     Trajectory seg1 = new Trajectory();
+    //     Trajectory seg2 = new Trajectory();
+    //     Trajectory seg3 = new Trajectory();
+    //     Trajectory seg4 = new Trajectory();
+
+    //     Path seg1Path = Filesystem.getDeployDirectory().toPath().resolve("paths/bouncePath/seg1.wpilib.json");
+    //     Path seg2Path = Filesystem.getDeployDirectory().toPath().resolve("paths/bouncePath/seg2.wpilib.json");
+    //     Path seg3Path = Filesystem.getDeployDirectory().toPath().resolve("paths/bouncePath/seg3.wpilib.json");
+    //     Path seg4Path = Filesystem.getDeployDirectory().toPath().resolve("paths/bouncePath/seg4.wpilib.json");
+        
+    //     try {
+    //         seg1 = TrajectoryUtil.fromPathweaverJson(seg1Path);
+    //     } catch (IOException e) {
+    //         // TODO Auto-generated catch block
+    //         System.out.println("Could not find segment 1");
+    //     }
+    //     try {
+    //         seg2 = TrajectoryUtil.fromPathweaverJson(seg2Path);
+    //     } catch (IOException e) {
+    //         // TODO Auto-generated catch block
+    //         System.out.println("Could not find segment 2");
+    //     }
+    //     try {
+    //         seg3 = TrajectoryUtil.fromPathweaverJson(seg3Path);
+    //     } catch (IOException e) {
+    //         // TODO Auto-generated catch block
+    //         System.out.println("Could not find segment 3");
+    //     }
+    //     try {
+    //         seg4 = TrajectoryUtil.fromPathweaverJson(seg4Path);
+    //     } catch (IOException e) {
+    //         // TODO Auto-generated catch block
+    //         System.out.println("Could not find segment 4");
+    //     }
+
+    //     final Pose2d seg2InitPose = seg2.getInitialPose();
+    //     final Pose2d seg3InitPose = seg3.getInitialPose();
+    //     final Pose2d seg4InitPose = seg4.getInitialPose();
+
+    // SequentialCommandGroup bouncePath = new SequentialCommandGroup(
+    //     new RamseteCmd(
+    //         seg1,
+    //         m_robotDrive::getPose,
+    //         new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
+    //         new SimpleMotorFeedforward(DriveConstants.ksVolts,
+    //                                 DriveConstants.kvVoltSecondsPerMeter,
+    //                                 DriveConstants.kaVoltSecondsSquaredPerMeter),
+    //         DriveConstants.kDriveKinematics,
+    //         m_robotDrive::getWheelSpeeds,
+    //         new PIDController(DriveConstants.kPDriveVel, 0, 0),
+    //         new PIDController(DriveConstants.kPDriveVel, 0, 0),
+    //         // RamseteCommand passes volts to the callback
+    //         m_robotDrive::tankDriveVolts,
+    //         m_robotDrive
+    //     ),
+    //     new InstantCommand(() -> m_robotDrive.resetOdometry(seg2InitPose)),
+    //     new RamseteCmd(
+    //         seg2,
+    //         m_robotDrive::getPose,
+    //         new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
+    //         new SimpleMotorFeedforward(DriveConstants.ksVolts,
+    //                                 DriveConstants.kvVoltSecondsPerMeter,
+    //                                 DriveConstants.kaVoltSecondsSquaredPerMeter),
+    //         DriveConstants.kDriveKinematics,
+    //         m_robotDrive::getWheelSpeeds,
+    //         new PIDController(DriveConstants.kPDriveVel, 0, 0),
+    //         new PIDController(DriveConstants.kPDriveVel, 0, 0),
+    //         // RamseteCommand passes volts to the callback
+    //         m_robotDrive::tankDriveVolts,
+    //         m_robotDrive
+    //     ),
+    //     new InstantCommand(() -> m_robotDrive.resetOdometry(seg3InitPose)),
+    //     new RamseteCmd(
+    //         seg3,
+    //         m_robotDrive::getPose,
+    //         new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
+    //         new SimpleMotorFeedforward(DriveConstants.ksVolts,
+    //                                 DriveConstants.kvVoltSecondsPerMeter,
+    //                                 DriveConstants.kaVoltSecondsSquaredPerMeter),
+    //         DriveConstants.kDriveKinematics,
+    //         m_robotDrive::getWheelSpeeds,
+    //         new PIDController(DriveConstants.kPDriveVel, 0, 0),
+    //         new PIDController(DriveConstants.kPDriveVel, 0, 0),
+    //         // RamseteCommand passes volts to the callback
+    //         m_robotDrive::tankDriveVolts,
+    //         m_robotDrive
+    //     ),
+    //     new InstantCommand(() -> m_robotDrive.resetOdometry(seg4InitPose)),
+    //     new RamseteCmd(
+    //         seg4,
+    //         m_robotDrive::getPose,
+    //         new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
+    //         new SimpleMotorFeedforward(DriveConstants.ksVolts,
+    //                                 DriveConstants.kvVoltSecondsPerMeter,
+    //                                 DriveConstants.kaVoltSecondsSquaredPerMeter),
+    //         DriveConstants.kDriveKinematics,
+    //         m_robotDrive::getWheelSpeeds,
+    //         new PIDController(DriveConstants.kPDriveVel, 0, 0),
+    //         new PIDController(DriveConstants.kPDriveVel, 0, 0),
+    //         // RamseteCommand passes volts to the callback
+    //         m_robotDrive::tankDriveVolts,
+    //         m_robotDrive
+    //     )
+    // );
+
+    // // Reset odometry to the starting pose of the trajectory.
+    // m_robotDrive.resetOdometry(seg1.getInitialPose());
 
     // Run path following command, then stop at the end.
-    return bouncePath.andThen(() -> m_robotDrive.tankDriveVolts(0, 0)).andThen(() -> System.out.println("Finished"));
+    return slalom.andThen(() -> m_robotDrive.tankDriveVolts(0, 0)).andThen(() -> System.out.println("Finished"));
   }
 }
