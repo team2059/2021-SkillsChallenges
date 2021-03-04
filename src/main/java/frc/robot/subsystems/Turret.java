@@ -70,7 +70,7 @@ public class Turret extends HHSubsystemBase {
     }
 
     public void rotateTurret() {
-        if(Math.abs(RobotContainer.driveJS.getRawAxis(2)) > .2) { //Dummy Deadzone
+        if(Math.abs(RobotContainer.driveJS.getRawAxis(2)) > .2) { // Dummy Deadzone
             setTurretRotatorMotor(RobotContainer.driveJS.getRawAxis(2));
         } else {
             setTurretRotatorMotor(0);
@@ -105,6 +105,6 @@ public class Turret extends HHSubsystemBase {
     }
 
     public double getDistanceToTarget() {
-        return (FieldConstants.HighGoalHeight - FieldConstants.LimeLightHeight) / Math.tan(turretLimelight.getVerticalOffset() + FieldConstants.LimelightAngle);
+        return TurretConstants.regressionParameter / RobotContainer.limelight.getEntry("thor").getDouble(0);
     }
 }

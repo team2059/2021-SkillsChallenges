@@ -87,6 +87,8 @@ public final class Constants {
 
         public static final double offsetTolerance = .5;
         public static final double offsetVelocityTolerance = 0;
+
+        public static final double regressionParameter = 31464.3;
     }
 
 
@@ -111,10 +113,10 @@ public final class Constants {
         public static final int HoodMotorSparkMaxPort = 17;
         public static final int HoodPotPort = 0;
 
-        public static final double FlyWheelkF = 0;
-        public static final double FlyWheelkP = .025;
-        public static final double FlyWheelkI = 0.00009;
-        public static final double FlyWheelkD = 0.4;
+        public static final double FlyWheelkF = .04;
+        public static final double FlyWheelkP = 0.14;
+        public static final double FlyWheelkI = 0.0;
+        public static final double FlyWheelkD = 0.0;
 
         public static final int LoopIdx = 0;
         public static final int MotorSlotIdx = 0;

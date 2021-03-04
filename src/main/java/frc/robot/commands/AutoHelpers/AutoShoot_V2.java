@@ -1,5 +1,6 @@
 package frc.robot.commands.AutoHelpers;
 
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.commands.PIDHoodSetPostion;
 import frc.robot.commands.PIDTrackHighGoal;
@@ -15,7 +16,8 @@ public class AutoShoot_V2  extends ParallelCommandGroup {
                 new PIDTrackHighGoal(turret),
                 new PIDVelocityShooter(shooter, 15000),
                 new PIDHoodSetPostion(hoodPosition, shooter),
-                new AutoLoad(ballElevator, .5)
+                new AutoLoad(ballElevator, .5),
+                new InstantCommand(() -> turret.setTurretRotatorMotor(0))
         );
     }
 }

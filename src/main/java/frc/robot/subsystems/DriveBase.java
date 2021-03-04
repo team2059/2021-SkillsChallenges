@@ -8,262 +8,261 @@ import com.revrobotics.CANSparkMax.IdleMode;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.*;
-import edu.wpi.first.wpilibj.controller.PIDController;
-import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
-import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Units;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpiutil.math.MathUtil;
+import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import hhCore.config.RobotState;
-import hhCore.subsystems.HHSubsystemBase;
 import frc.robot.Constants.DriveConstants;
 
-public class DriveBase extends HHSubsystemBase {
+public class DriveBase extends SubsystemBase {
 
-    CANSparkMax leftMaster = new CANSparkMax(DriveConstants.leftMaster, CANSparkMaxLowLevel.MotorType.kBrushless);
-    CANSparkMax rightMaster = new CANSparkMax(DriveConstants.rightMaster, CANSparkMaxLowLevel.MotorType.kBrushless);
-    CANSparkMax leftPrimarySlave = new CANSparkMax(DriveConstants.leftPrimarySlave, CANSparkMaxLowLevel.MotorType.kBrushless);
-    CANSparkMax leftSecondarySlave = new CANSparkMax(DriveConstants.leftSecondarySlave, CANSparkMaxLowLevel.MotorType.kBrushless);
-    CANSparkMax rightPrimarySlave = new CANSparkMax(DriveConstants.rightPrimarySlave, CANSparkMaxLowLevel.MotorType.kBrushless);
-    CANSparkMax rightSecondarySlave = new CANSparkMax(DriveConstants.rightSecondarySlave, CANSparkMaxLowLevel.MotorType.kBrushless);
+  CANSparkMax leftFront = new CANSparkMax(DriveConstants.leftMaster, CANSparkMaxLowLevel.MotorType.kBrushless);
+  CANSparkMax leftMid = new CANSparkMax(DriveConstants.leftPrimarySlave, CANSparkMaxLowLevel.MotorType.kBrushless);
+  CANSparkMax leftBack = new CANSparkMax(DriveConstants.leftSecondarySlave, CANSparkMaxLowLevel.MotorType.kBrushless);
+  CANSparkMax rightFront = new CANSparkMax(DriveConstants.rightMaster, CANSparkMaxLowLevel.MotorType.kBrushless);
+  CANSparkMax rightMid = new CANSparkMax(DriveConstants.rightPrimarySlave, CANSparkMaxLowLevel.MotorType.kBrushless);
+  CANSparkMax rightBack = new CANSparkMax(DriveConstants.rightSecondarySlave, CANSparkMaxLowLevel.MotorType.kBrushless);
 
-    public NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight-ball");
+  public NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight-ball");
 
-    private final Gyro gyro = new AHRS(SPI.Port.kMXP);
+  // The motors on the left side of the drive.
+  private final SpeedControllerGroup m_leftMotors =
+      new SpeedControllerGroup(leftFront, leftMid, leftBack);
 
-    private final double ticksPerFoot = 142.2;
+  // The motors on the right side of the drive.
+  private final SpeedControllerGroup m_rightMotors =
+      new SpeedControllerGroup(rightFront, rightMid, rightBack);
 
-    DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(24));
-    DifferentialDriveOdometry m_odometry;
+  // The robot's drive
+  private final DifferentialDrive m_drive = new DifferentialDrive(m_leftMotors, m_rightMotors);
 
-    SpeedControllerGroup leftMotors = new SpeedControllerGroup(leftMaster, leftPrimarySlave, leftSecondarySlave);
-    SpeedControllerGroup rightMotors = new SpeedControllerGroup(rightMaster, rightPrimarySlave, rightSecondarySlave);
+  // The left-side drive encoder
+  private final CANEncoder m_leftEncoder = leftFront.getEncoder();
 
-    DifferentialDrive differentialDrive = new DifferentialDrive(leftMotors, rightMotors);
+  // The right-side drive encoder
+  private final CANEncoder m_rightEncoder = rightFront.getEncoder();
 
-    // The left-side drive encoder
-    private final CANEncoder m_leftEncoder = leftMaster.getEncoder();
+  // The gyro sensor
+  private final Gyro m_gyro = new AHRS(SPI.Port.kMXP);
 
-    // The right-side drive encoder
-    private final CANEncoder m_rightEncoder = rightMaster.getEncoder();
+  // Odometry class for tracking robot pose
+  private final DifferentialDriveOdometry m_odometry;
 
-    PIDController leftPIDController = new PIDController(0.747, 0, 0);
-    PIDController rightPIDController = new PIDController(0.747, 0, 0);
+  /**
+   * Creates a new DriveSubsystem.
+   */
+  public DriveBase() {
+    leftFront.restoreFactoryDefaults();
+    leftMid.restoreFactoryDefaults();
+    leftBack.restoreFactoryDefaults();
 
-    SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0.276, .0358, 0.0153);
+    rightFront.restoreFactoryDefaults();
+    rightMid.restoreFactoryDefaults();
+    rightBack.restoreFactoryDefaults();
 
-    Pose2d pose = new Pose2d();
+    leftFront.setIdleMode(IdleMode.kCoast);
+    leftMid.setIdleMode(IdleMode.kCoast);
+    leftBack.setIdleMode(IdleMode.kCoast);
+    rightFront.setIdleMode(IdleMode.kCoast);
+    rightMid.setIdleMode(IdleMode.kCoast);
+    rightBack.setIdleMode(IdleMode.kCoast);
 
-    public DriveBase() {
-        super("DriveBase");
+    System.out.println("All Motors set to Coast");
 
-        leftMaster.restoreFactoryDefaults();
-        rightMaster.restoreFactoryDefaults();
-        leftPrimarySlave.restoreFactoryDefaults();
-        leftSecondarySlave.restoreFactoryDefaults();
-        rightPrimarySlave.restoreFactoryDefaults();
-        rightSecondarySlave.restoreFactoryDefaults();
+    m_gyro.reset();
 
-        leftMaster.setIdleMode(IdleMode.kCoast);
-        rightMaster.setIdleMode(IdleMode.kCoast);
-        leftPrimarySlave.setIdleMode(IdleMode.kCoast);
-        leftSecondarySlave.setIdleMode(IdleMode.kCoast);
-        rightPrimarySlave.setIdleMode(IdleMode.kCoast);
-        rightSecondarySlave.setIdleMode(IdleMode.kCoast);
+    m_leftEncoder.setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
+    m_rightEncoder.setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
+    m_rightEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation / 60);
+    m_leftEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation / 60);
 
-        gyro.reset();
-
-        leftPrimarySlave.follow(leftMaster);
-        leftSecondarySlave.follow(leftMaster);
-        rightPrimarySlave.follow(rightMaster);
-        rightPrimarySlave.follow(rightMaster);
-
-        leftMaster.setInverted(true);
-        leftPrimarySlave.setInverted(true);
-        leftSecondarySlave.setInverted(true);
-        rightMaster.setInverted(false);
-        rightPrimarySlave.setInverted(false);
-        rightSecondarySlave.setInverted(false);
-
-        m_leftEncoder.setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
-        m_rightEncoder.setPositionConversionFactor(DriveConstants.kLinearDistancePerMotorRotation);
-        m_leftEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation / 60);
-        m_rightEncoder.setVelocityConversionFactor(DriveConstants.kLinearDistancePerMotorRotation / 60);
-        leftMaster.getEncoder().setPosition(0);
-        rightMaster.getEncoder().setPosition(0);
+    rightFront.setInverted(true);
+    rightMid.setInverted(true);
+    rightBack.setInverted(true);
 
 
-        differentialDrive.setSafetyEnabled(false);
-        m_odometry = new DifferentialDriveOdometry(gyro.getRotation2d());
-    }
+    System.out.println(m_leftEncoder.getPositionConversionFactor());
+    System.out.println(m_leftEncoder.getVelocityConversionFactor());
+    System.out.println(m_leftEncoder.getCountsPerRevolution());
+    System.out.println(m_leftEncoder.getMeasurementPeriod());
 
-    @Override
-    public void periodic() {
-        m_odometry.update(Rotation2d.fromDegrees(getGyroAngle()), m_leftEncoder.getPosition(),
-            m_rightEncoder.getPosition());
-        SmartDashboard.putNumber("Gyro Angle", getGyroAngle());
-        SmartDashboard.putNumber("Gyro Heading", getHeading());
-        SmartDashboard.putNumber("Left Ticks", m_leftEncoder.getPosition());
-        SmartDashboard.putNumber("Right Ticks", m_rightEncoder.getPosition());
-        SmartDashboard.putNumber("Left Velocity", m_leftEncoder.getVelocity());
-        SmartDashboard.putNumber("Right Velocity", m_rightEncoder.getVelocity());
-        SmartDashboard.putNumber("Ball Offset", getBallOffset());
-        // System.out.println(getPose());
-    }
+    resetEncoders();
+    m_odometry = new DifferentialDriveOdometry(m_gyro.getRotation2d());
+  }
 
-    public double getGyroAngle() {
-        return -gyro.getAngle();
-    }
+  @Override
+  public void periodic() {
+    // Update the odometry in the periodic block
+    m_odometry.update(m_gyro.getRotation2d(), m_leftEncoder.getPosition(),
+                      m_rightEncoder.getPosition());
 
-    public DifferentialDriveKinematics getKinematics() {
-        return kinematics;
-    }
+    SmartDashboard.putNumber("REncoder Pos", m_rightEncoder.getPosition());
+    SmartDashboard.putNumber("REncoder Vel", m_rightEncoder.getVelocity());
+    SmartDashboard.putNumber("LEncoder Pos", m_leftEncoder.getPosition());
+    SmartDashboard.putNumber("LEncoder Vel", m_leftEncoder.
+    getVelocity());
 
-    public SimpleMotorFeedforward getFeedforward() {
-        return feedforward;
-    }
+    // System.out.println("Gyro Angle " + m_gyro.getAngle());
+    // System.out.println("Gyro Heading " + getHeading());
 
-    public PIDController getLeftPIDController() {
-        return leftPIDController;
-    }
+    SmartDashboard.putNumber("Current Left Speed", m_leftEncoder.getVelocity());
+    SmartDashboard.putNumber("Current Right Speed", m_rightEncoder.getVelocity());
+  }
 
-    public PIDController getRightPIDController() {
-        return rightPIDController;
-    }
+  /**
+   * Returns the currently-estimated pose of the robot.
+   *
+   * @return The pose.
+   */
+  public Pose2d getPose() {
+    return m_odometry.getPoseMeters();
+  }
 
-    public void setOutputVolts(double leftVolts, double rightVolts) {
-        leftMaster.set(leftVolts / 12);
-        rightMaster.set(rightVolts / 12);
-    }
+  /**
+   * Returns the current wheel speeds of the robot.
+   *
+   * @return The current wheel speeds.
+   */
+  public DifferentialDriveWheelSpeeds getWheelSpeeds() {
+    return new DifferentialDriveWheelSpeeds(m_leftEncoder.getVelocity(), m_rightEncoder.getVelocity());
+  }
 
-    public void reset() {
-        gyro.reset();
-        leftMaster.getEncoder().setPosition(0);
-        rightMaster.getEncoder().setPosition(0);
-    }
+  /**
+   * Resets the odometry to the specified pose.
+   *
+   * @param pose The pose to which to set the odometry.
+   */
+  public void resetOdometry(Pose2d pose) {
+    resetEncoders();
+    m_odometry.resetPosition(pose, m_gyro.getRotation2d());
+  }
 
-    public void drive(){
-        differentialDrive.arcadeDrive(-RobotContainer.driveJS.getRawAxis(2), -RobotContainer.driveJS.getRawAxis(1));
-    }
+  /**
+   * Drives the robot using arcade controls.
+   *
+   * @param fwd the commanded forward movement
+   * @param rot the commanded rotation
+   */
+  public void arcadeDrive(double fwd, double rot) {
+    // System.out.println("fws power" + fwd);
+    m_drive.arcadeDrive(fwd, rot);
+  }
 
-    public void resetOdometry(Pose2d pose) {
-        resetEncoders();
-        m_odometry.resetPosition(pose, gyro.getRotation2d());
-    }
+  /**
+   * Controls the left and right sides of the drive directly with voltages.
+   *
+   * @param leftVolts  the commanded left output
+   * @param rightVolts the commanded right output
+   */
+  public void tankDriveVolts(double leftVolts, double rightVolts) {
+    // System.out.println(leftVolts + " " + rightVolts);
+    // TODO: UnClamp Voltage
+    // leftVolts = MathUtil.clamp(leftVolts, -2, 2);
+    // rightVolts = MathUtil.clamp(rightVolts, -2, 2);
+    m_leftMotors.setVoltage(leftVolts);
+    m_rightMotors.setVoltage(rightVolts);
+    m_drive.feed();
+  }
 
-    /**
-     * Returns the currently-estimated pose of the robot.
-     *
-     * @return The pose.
-     */
-    public Pose2d getPose() {
-        return m_odometry.getPoseMeters();
-    }
+  /**
+   * Resets the drive encoders to currently read a position of 0.
+   */
+  public void resetEncoders() {
+    m_leftEncoder.setPosition(0);
+    m_rightEncoder.setPosition(0);
+  }
 
-    /**
-     * Returns the current wheel speeds of the robot.
-     *
-     * @return The current wheel speeds.
-     */
-    public DifferentialDriveWheelSpeeds getWheelSpeeds() {
-        return new DifferentialDriveWheelSpeeds(m_leftEncoder.getVelocity(), m_rightEncoder.getVelocity());
-    }
+  /**
+   * Gets the average distance of the two encoders.
+   *
+   * @return the average of the two encoder readings
+   */
+  public double getAverageEncoderDistance() {
+    return (m_leftEncoder.getPosition() + m_rightEncoder.getPosition()) / 2.0;
+  }
 
-    public void arcadeDrive(double xSpeed, double zRotation) {
-        // System.out.println(String.format("xSpeed is %f, zRotation is %f", xSpeed, zRotation));
-        differentialDrive.arcadeDrive(-xSpeed, zRotation);
-    }
+  /**
+   * Gets the left drive encoder.
+   *
+   * @return the left drive encoder
+   */
+  public CANEncoder getLeftEncoder() {
+    return m_leftEncoder;
+  }
 
-    /**
-     * Controls the left and right sides of the drive directly with voltages.
-     *
-     * @param leftVolts  the commanded left output
-     * @param rightVolts the commanded right output
-     */
-    public void tankDriveVolts(double leftVolts, double rightVolts) {
-        System.out.println(leftVolts + " " + rightVolts);
-        System.out.println(getPose());
-        leftMotors.setVoltage(leftVolts);
-        rightMotors.setVoltage(rightVolts);
-        differentialDrive.feed();
-    }
+  /**
+   * Gets the right drive encoder.
+   *
+   * @return the right drive encoder
+   */
+  public CANEncoder getRightEncoder() {
+    return m_rightEncoder;
+  }
 
+  /**
+   * Sets the max output of the drive.  Useful for scaling the drive to drive more slowly.
+   *
+   * @param maxOutput the maximum output to which the drive will be constrained
+   */
+  public void setMaxOutput(double maxOutput) {
+    m_drive.setMaxOutput(maxOutput);
+  }
 
-    public double getBallOffset() {
-        return table.getEntry("tx").getDouble(0.0);
-    }
+  /**
+   * Zeroes the heading of the robot.
+   */
+  public void zeroHeading() {
+    m_gyro.reset();
+  }
 
-    public double getStraightDistance() {
-        return (leftMaster.getEncoder().getPosition()/ticksPerFoot + leftMaster.getEncoder().getPosition()/ticksPerFoot) / 2;
-    }
+  /**
+   * Returns the heading of the robot.
+   *
+   * @return the robot's heading in degrees, from -180 to 180
+   */
+  public double getHeading() {
+    return m_gyro.getRotation2d().getDegrees();
+  }
 
-    public void resetEncoders() {
-        m_leftEncoder.setPosition(0);
-        m_rightEncoder.setPosition(0);
-    }
+  /**
+   * Returns the turn rate of the robot.
+   *
+   * @return The turn rate of the robot, in degrees per second
+   */
+  public double getTurnRate() {
+    return -m_gyro.getRate();
+  }
 
-    /**
-     * Gets the left drive encoder.
-     *
-     * @return the left drive encoder
-     */
-    public CANEncoder getLeftEncoder() {
-        return m_leftEncoder;
-    }
+  public void reset() {
+    m_gyro.reset();
+    leftFront.getEncoder().setPosition(0);
+    rightFront.getEncoder().setPosition(0);
+  }
 
-    /**
-     * Gets the right drive encoder.
-     *
-     * @return the right drive encoder
-     */
-    public CANEncoder getRightEncoder() {
-        return m_rightEncoder;
-    }
+  public void drive(){
+    m_drive.arcadeDrive(RobotContainer.driveJS.getRawAxis(0), RobotContainer.driveJS.getRawAxis(1));
+  }
 
-    /**
-     * Sets the max output of the drive.  Useful for scaling the drive to drive more slowly.
-     *
-     * @param maxOutput the maximum output to which the drive will be constrained
-     */
-    public void setMaxOutput(double maxOutput) {
-        differentialDrive.setMaxOutput(maxOutput);
-    }
+  
+  public double getBallOffset() {
+    return table.getEntry("tx").getDouble(0.0);
+  }
 
-    /**
-     * Zeroes the heading of the robot.
-     */
-    public void zeroHeading() {
-        gyro.reset();
-    }
+  public double getGyroAngle() {
+    return m_gyro.getAngle();
+  }
+  
+  public double getStraightDistance() {
+    return (leftFront.getEncoder().getPosition() + rightBack.getEncoder().getPosition()) / 2;
+  }
 
-    /**
-     * Returns the heading of the robot.
-     *
-     * @return the robot's heading in degrees, from -180 to 180
-     */
-    public double getHeading() {
-        return gyro.getRotation2d().getDegrees();
-    }
-
-    /**
-     * Returns the turn rate of the robot.
-     *
-     * @return The turn rate of the robot, in degrees per second
-     */
-    public double getTurnRate() {
-        return -gyro.getRate();
-    }
-
-    @Override
-    public void update(RobotState robotState) {
-
-    }
 }

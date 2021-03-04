@@ -63,6 +63,7 @@ public class Shooter extends HHSubsystemBase {
     public void periodic() {
         SmartDashboard.putNumber("FlyWheel Velocity", FlywheelShooter.getSelectedSensorVelocity());
         SmartDashboard.putNumber("Hood Position", hoodEncoder.getPosition());
+        SmartDashboard.putNumber("Flywheel Voltage", FlywheelShooter.getBusVoltage());
 //        SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
         mapPotVoltageToNeoEncoder();
 //        SmartDashboard.putNumber("Hood Output", HoodMotor.getAppliedOutput());

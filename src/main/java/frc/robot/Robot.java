@@ -40,11 +40,13 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putNumber("Compressor Current", compressor.getCompressorCurrent());
 
-    if (RobotContainer.buttonBox.getRawButton(20)) {
-      RobotContainer.limelight.getEntry("ledMode").setNumber(1);
-    } else {
-      RobotContainer.limelight.getEntry("ledMode").setNumber(3);
-    }
+    SmartDashboard.putNumber("Estimated Distance", RobotContainer.getTurret().getDistanceToTarget());
+
+    // if (RobotContainer.buttonBox.getRawButton(20)) {
+    //   RobotContainer.limelight.getEntry("ledMode").setNumber(1);
+    // } else {
+    //   RobotContainer.limelight.getEntry("ledMode").setNumber(3);
+    // }
     SmartDashboard.putBoolean("Ten Foot Shot", Constants.FieldConstants.isTenFootShot);
   }
 
@@ -92,10 +94,10 @@ public class Robot extends TimedRobot {
     try {
       CrashTracker.logTeleopInit();
 
-      RobotContainer.limelightBall.getEntry("camMode").setNumber(1);
-      RobotContainer.limelightBall.getEntry("ledMode").setNumber(1);
+      // RobotContainer.limelightBall.getEntry("camMode").setNumber(1);
+      // RobotContainer.limelightBall.getEntry("ledMode").setNumber(1);
 
-      RobotContainer.limelight.getEntry("ledMode").setNumber(1);
+      // RobotContainer.limelight.getEntry("ledMode").setNumber(1);
 
       RobotContainer.getDrive().resetEncoders();
 
