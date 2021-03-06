@@ -30,7 +30,7 @@ public class AutoLoad extends CommandBase {
 
     @Override
     public void execute() {
-        if (Math.abs(RobotContainer.getShooter().getFlyWheelVelocity() - 15000) < 200){
+        if (Math.abs(RobotContainer.getShooter().getFlyWheelVelocity()) > 17000){
             m_BallElevator.setBallElevatorMotor(speed);
         } else {
             m_BallElevator.setBallElevatorMotor(0);

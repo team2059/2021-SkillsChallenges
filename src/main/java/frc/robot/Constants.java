@@ -113,8 +113,12 @@ public final class Constants {
         public static final int HoodMotorSparkMaxPort = 17;
         public static final int HoodPotPort = 0;
 
-        public static final double FlyWheelkF = .04;
-        public static final double FlyWheelkP = 0.14;
+        public static final double ksVolts = 0.749;
+        public static final double kvVoltSecondsPerMeter = 0.0893;
+        public static final double kaVoltSecondsSquaredPerMeter = 0.103;
+
+        public static final double FlyWheelkF = .06;
+        public static final double FlyWheelkP = 0.2;
         public static final double FlyWheelkI = 0.0;
         public static final double FlyWheelkD = 0.0;
 

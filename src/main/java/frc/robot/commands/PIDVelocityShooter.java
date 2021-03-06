@@ -12,12 +12,11 @@ public class PIDVelocityShooter extends CommandBase {
     public PIDVelocityShooter(Shooter subsystem, double setpoint) {
         this.m_Shooter = subsystem;
         this.setpoint = setpoint;
-        System.out.println("Starting Turret \n\n\n");
     }
 
     @Override
     public void initialize() {
-        System.out.println("Starting Turret \n\n\n");
+        System.out.println("Starting Velocity Shooter \n\n\n");
     }
 
     @Override

@@ -1,10 +1,13 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.revrobotics.*;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.RobotContainer;
@@ -21,6 +24,12 @@ public class Shooter extends HHSubsystemBase {
         private int smartMotionSlot = 1;
 
     AnalogInput hoodPot = new AnalogInput(ShooterConstants.HoodPotPort);
+
+    SimpleMotorFeedforward flyWheelFeedforward = new SimpleMotorFeedforward(ShooterConstants.ksVolts, ShooterConstants.kvVoltSecondsPerMeter, ShooterConstants.kaVoltSecondsSquaredPerMeter);
+
+    double oldTime, newTime = Timer.getFPGATimestamp();
+    double oldVelocity, newVelocity = 0;
+    double acceleration = 0;
 
     public Shooter() {
         super("Shooter");
@@ -64,10 +73,22 @@ public class Shooter extends HHSubsystemBase {
         SmartDashboard.putNumber("FlyWheel Velocity", FlywheelShooter.getSelectedSensorVelocity());
         SmartDashboard.putNumber("Hood Position", hoodEncoder.getPosition());
         SmartDashboard.putNumber("Flywheel Voltage", FlywheelShooter.getBusVoltage());
+        
 //        SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
         mapPotVoltageToNeoEncoder();
 //        SmartDashboard.putNumber("Hood Output", HoodMotor.getAppliedOutput());
+
+        newTime = Timer.getFPGATimestamp();
+        newVelocity = FlywheelShooter.getSelectedSensorVelocity();
+
+        acceleration = (newVelocity - oldVelocity) / (newTime - oldTime);
+
+        oldTime = newTime;
+        oldVelocity = newVelocity;
+
     }
+
+
 
     @Override
     public void update(RobotState robotState) {
@@ -117,7 +138,9 @@ public class Shooter extends HHSubsystemBase {
     }
 
     public void setWheelVelocity(double speed) {
-        FlywheelShooter.set(ControlMode.Velocity, speed);
+        System.out.println("Arbitrary FF Value: " + speed);
+        double kF = flyWheelFeedforward.calculate(FlywheelShooter.getSelectedSensorVelocity(), acceleration);
+        FlywheelShooter.set(ControlMode.Velocity, speed, DemandType.ArbitraryFeedForward, kF);
     }
 
     public void setFlywheelMotor(double speed) {

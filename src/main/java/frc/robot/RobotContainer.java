@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
@@ -91,20 +92,21 @@ public class RobotContainer {
 
     // limelightBall.getEntry("pipeline").setNumber(1);
 
-    Path trajectoryPath;
+    Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/Complete.wpilib.json");
 
-    System.out.println("Is Red Path? " + isRedPath());
+//     System.out.println("Is Red Path? " + isRedPath());
 
-    if (isRedPath()) {
-      trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchA/AR.wpilib.json");
-    } else {
-      trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchA/AB.wpilib.json");
-    }
+//     if (isRedPath()) {
+//       trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchA/AR.wpilib.json");
+//     } else {
+//       trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchA/AB.wpilib.json");
+//     }
 
-    Trajectory galacticSearchA = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+
+    Trajectory bouncePath = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
 
     RamseteCommand ramseteCommand = new RamseteCommand(
-        galacticSearchA,
+      bouncePath,
         m_DriveBase::getPose,
         new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
         new SimpleMotorFeedforward(DriveConstants.ksVolts,
@@ -119,19 +121,31 @@ public class RobotContainer {
         m_DriveBase
     );
 
-    ParallelCommandGroup finalCommand = new ParallelCommandGroup(
+    m_DriveBase.reset();
+    // Reset odometry to the starting pose of the trajectory.
+    m_DriveBase.resetOdometry(bouncePath.getInitialPose());
+
+    ParallelCommandGroup bounceCollect = new ParallelCommandGroup(
+      new PIDRotateTurret(m_Turret, 20000),
       new InstantCommand(() -> m_Conveyor.toggleCollector()),
-      new SetCollector(m_Conveyor, .5),
+      new ParallelCommandGroup(
+                    new SetCollector(m_Conveyor, .75),
+                    new LoadNextBall(m_BallElevator, .75)),
       ramseteCommand
     );
 
-
-    m_DriveBase.reset();
-    // Reset odometry to the starting pose of the trajectory.
-    m_DriveBase.resetOdometry(galacticSearchA.getInitialPose());
+    SequentialCommandGroup finalCommand = new SequentialCommandGroup(
+      bounceCollect.withTimeout(45),
+      new InstantCommand(() -> System.out.println("Finished Ramsete")),
+      new InstantCommand(() -> m_DriveBase.tankDriveVolts(0, 0)),
+      new InstantCommand(() -> m_Conveyor.toggleCollector()),
+      new PIDRotateTurret(m_Turret, 20000),
+      new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 3.85, m_Conveyor),
+      new PIDVelocityShooter(m_Shooter, 0)
+    );
 
     // Run path following command, then stop at the end.
-    return finalCommand.andThen(() -> m_DriveBase.tankDriveVolts(0, 0));
+    return finalCommand.andThen(() -> System.out.println("Finished Auto Sequence"));
   }
 
   /**
@@ -200,8 +214,8 @@ public class RobotContainer {
     new JoystickButton(buttonBox, 1)
             .whileHeld(new ConditionalCommand(
                     new ConditionalCommand(
-                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 4.5).andThen(new PIDHoodSetPostion(0, m_Shooter)),
-                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 3.85).andThen(new PIDHoodSetPostion(0, m_Shooter)),
+                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 4.5, m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
+                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 3.85, m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
                             getDistanceSelector()
                     ),
                 new PIDVelocityShooter(m_Shooter, 15000),
