@@ -27,10 +27,6 @@ public class Shooter extends HHSubsystemBase {
 
     SimpleMotorFeedforward flyWheelFeedforward = new SimpleMotorFeedforward(ShooterConstants.ksVolts, ShooterConstants.kvVoltSecondsPerMeter, ShooterConstants.kaVoltSecondsSquaredPerMeter);
 
-    double oldTime, newTime = Timer.getFPGATimestamp();
-    double oldVelocity, newVelocity = 0;
-    double acceleration = 0;
-
     public Shooter() {
         super("Shooter");
 
@@ -72,19 +68,11 @@ public class Shooter extends HHSubsystemBase {
     public void periodic() {
         SmartDashboard.putNumber("FlyWheel Velocity", FlywheelShooter.getSelectedSensorVelocity());
         SmartDashboard.putNumber("Hood Position", hoodEncoder.getPosition());
-        SmartDashboard.putNumber("Flywheel Voltage", FlywheelShooter.getBusVoltage());
+        SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
         
 //        SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
         mapPotVoltageToNeoEncoder();
 //        SmartDashboard.putNumber("Hood Output", HoodMotor.getAppliedOutput());
-
-        newTime = Timer.getFPGATimestamp();
-        newVelocity = FlywheelShooter.getSelectedSensorVelocity();
-
-        acceleration = (newVelocity - oldVelocity) / (newTime - oldTime);
-
-        oldTime = newTime;
-        oldVelocity = newVelocity;
 
     }
 
@@ -96,7 +84,7 @@ public class Shooter extends HHSubsystemBase {
     }
 
     public void mapPotVoltageToNeoEncoder() {
-        if (Math.abs(getHoodPotVoltage() - .7739) < .1) {
+        if (Math.abs(getHoodPotVoltage() - .8130) < .1) {
             HoodMotor.getEncoder().setPosition(0);
         }
 
@@ -137,10 +125,15 @@ public class Shooter extends HHSubsystemBase {
         FlywheelShooter.set(ControlMode.Velocity, velocity);
     }
 
+    // USING DYNAMIC FEEDFORWARD VALUE
+    // public void setWheelVelocity(double speed) {
+    //     double kF = flyWheelFeedforward.calculate(FlywheelShooter.getSelectedSensorVelocity());
+    //     System.out.println("Arbitrary FF Value: " + kF);
+    //     FlywheelShooter.set(ControlMode.Velocity, speed, DemandType.ArbitraryFeedForward, kF);
+    // }
+
     public void setWheelVelocity(double speed) {
-        System.out.println("Arbitrary FF Value: " + speed);
-        double kF = flyWheelFeedforward.calculate(FlywheelShooter.getSelectedSensorVelocity(), acceleration);
-        FlywheelShooter.set(ControlMode.Velocity, speed, DemandType.ArbitraryFeedForward, kF);
+        FlywheelShooter.set(ControlMode.Velocity, speed);
     }
 
     public void setFlywheelMotor(double speed) {

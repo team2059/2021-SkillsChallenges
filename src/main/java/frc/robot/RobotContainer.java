@@ -186,8 +186,8 @@ public class RobotContainer {
             .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
 
     new JoystickButton(driveJS, 11)
-            .whenPressed(() -> m_DriveBase.tankDriveVolts(4, 4))
-            .whenReleased(() -> m_DriveBase.tankDriveVolts(0, 0));
+            .whenPressed(new PIDVelocityShooter(m_Shooter, 19000))
+            .whenReleased(() -> m_Shooter.setFlywheelMotor(0));
 
     new JoystickButton(driveJS, 12)
             .whenPressed(new PIDHoodSetPostion(0, m_Shooter))
