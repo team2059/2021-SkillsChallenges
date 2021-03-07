@@ -27,6 +27,9 @@ public class Shooter extends HHSubsystemBase {
 
     SimpleMotorFeedforward flyWheelFeedforward = new SimpleMotorFeedforward(ShooterConstants.ksVolts, ShooterConstants.kvVoltSecondsPerMeter, ShooterConstants.kaVoltSecondsSquaredPerMeter);
 
+    public static int targetVelocity = 0;
+    public static double targetHoodPosition = 0;
+
     public Shooter() {
         super("Shooter");
 
@@ -62,6 +65,9 @@ public class Shooter extends HHSubsystemBase {
         hoodPIDController.setSmartMotionMinOutputVelocity(ShooterConstants.HoodMinVel, smartMotionSlot);
         hoodPIDController.setSmartMotionMaxAccel(ShooterConstants.HoodMaxAcc, smartMotionSlot);
         hoodPIDController.setSmartMotionAllowedClosedLoopError(ShooterConstants.HoodAllowedErr, smartMotionSlot);
+    
+        SmartDashboard.putNumber("Target Flywheel Velocity", targetVelocity);
+        SmartDashboard.putNumber("Target Hood Position", targetHoodPosition);
     }
 
     @Override
@@ -69,7 +75,10 @@ public class Shooter extends HHSubsystemBase {
         SmartDashboard.putNumber("FlyWheel Velocity", FlywheelShooter.getSelectedSensorVelocity());
         SmartDashboard.putNumber("Hood Position", hoodEncoder.getPosition());
         SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
-        
+
+        Shooter.targetVelocity = (int) SmartDashboard.getNumber("Target Flywheel Velocity", 0);
+        Shooter.targetHoodPosition = SmartDashboard.getNumber("Target Hood Position", 0);
+
 //        SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
         mapPotVoltageToNeoEncoder();
 //        SmartDashboard.putNumber("Hood Output", HoodMotor.getAppliedOutput());
@@ -84,11 +93,11 @@ public class Shooter extends HHSubsystemBase {
     }
 
     public void mapPotVoltageToNeoEncoder() {
-        if (Math.abs(getHoodPotVoltage() - .8130) < .1) {
+        if (Math.abs(getHoodPotVoltage() - .7885) < .1) {
             HoodMotor.getEncoder().setPosition(0);
         }
 
-        if (Math.abs(getHoodPotVoltage() - 2.546) < .1) {
+        if (Math.abs(getHoodPotVoltage() - 3.24) < .1) {
             HoodMotor.getEncoder().setPosition(18.142);
         }
     }

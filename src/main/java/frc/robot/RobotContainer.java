@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.commands.*;
+import frc.robot.commands.AutoHelpers.AutoShootTester;
 import frc.robot.commands.AutoHelpers.AutoShoot_V2;
 import frc.robot.commands.AutoHelpers.LoadNextBall;
 import frc.robot.subsystems.*;
@@ -214,8 +215,8 @@ public class RobotContainer {
     new JoystickButton(buttonBox, 1)
             .whileHeld(new ConditionalCommand(
                     new ConditionalCommand(
-                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 4.5, m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
-                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 3.85, m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
+                            new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 4.5, m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
+                            new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 3.85, m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
                             getDistanceSelector()
                     ),
                 new PIDVelocityShooter(m_Shooter, 15000),

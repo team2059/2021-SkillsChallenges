@@ -8,6 +8,7 @@ import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.BallElevator;
 import frc.robot.subsystems.Conveyor;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Turret;
 
 import java.util.Set;
@@ -30,7 +31,7 @@ public class AutoLoad extends CommandBase {
 
     @Override
     public void execute() {
-        if (Math.abs(RobotContainer.getShooter().getFlyWheelVelocity()) > 15500){
+        if (Math.abs(RobotContainer.getShooter().getFlyWheelVelocity() - Shooter.targetVelocity) < 500){
             System.out.println("Loading Next Ball \n\n\n");
             m_BallElevator.setBallElevatorMotor(speed);
         } else {
