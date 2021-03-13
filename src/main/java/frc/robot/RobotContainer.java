@@ -186,11 +186,11 @@ public class RobotContainer {
             .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
 
     new JoystickButton(driveJS, 11)
-            .whenPressed(new PIDVelocityShooter(m_Shooter, 19000))
-            .whenReleased(() -> m_Shooter.setFlywheelMotor(0));
+            .whileHeld(new PIDHoodSetPostion(8.5, m_Shooter))
+            .whenReleased(() -> m_Shooter.setHoodMotor(0));
 
     new JoystickButton(driveJS, 12)
-            .whenPressed(new PIDHoodSetPostion(0, m_Shooter))
+            .whileHeld(new PIDHoodSetPostion(0, m_Shooter))
             .whenReleased(() -> m_Shooter.setHoodMotor(0));
 
 //     new JoystickButton(driveJS, 5)
@@ -214,7 +214,7 @@ public class RobotContainer {
     new JoystickButton(buttonBox, 1)
             .whileHeld(new ConditionalCommand(
                     new ConditionalCommand(
-                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 4.5, m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
+                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 6.55,m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
                             new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 3.85, m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
                             getDistanceSelector()
                     ),

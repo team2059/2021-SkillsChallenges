@@ -128,9 +128,9 @@ public final class Constants {
         public static final int CtreTimeoutMs = 30;
 
         // PID coefficients
-        public static final double HoodkP = .1;
-        public static final double HoodkI = .001;
-        public static final double HoodkD = .001;
+        public static final double HoodkP = .06;
+        public static final double HoodkI = 0.0006;
+        public static final double HoodkD = 0.0;
         public static final double HoodkIz = 0;
         public static final double HoodkFF = 0;
         public static final double HoodkMaxOutput = .5;

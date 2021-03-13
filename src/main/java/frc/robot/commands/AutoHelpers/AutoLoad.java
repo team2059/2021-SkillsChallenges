@@ -1,5 +1,6 @@
 package frc.robot.commands.AutoHelpers;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandGroupBase;
@@ -30,10 +31,11 @@ public class AutoLoad extends CommandBase {
 
     @Override
     public void execute() {
-        if (Math.abs(RobotContainer.getShooter().getFlyWheelVelocity()) > 15500){
-            System.out.println("Loading Next Ball \n\n\n");
+        if (Math.abs(RobotContainer.getShooter().getFlyWheelVelocity()) > 18950){
+            SmartDashboard.putBoolean("Loading Next", true);
             m_BallElevator.setBallElevatorMotor(speed);
         } else {
+            SmartDashboard.putBoolean("Loading Next", false);
             m_BallElevator.setBallElevatorMotor(0);
         }
     }

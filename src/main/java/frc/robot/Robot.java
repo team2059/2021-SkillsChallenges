@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.revrobotics.CANSparkMax.IdleMode;
+
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Compressor;
@@ -53,6 +55,9 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit() {
     try {
+
+      RobotContainer.getShooter().setHoodMode(IdleMode.kCoast);
+
       CrashTracker.logDisabled();
     } catch (Throwable t) {
       CrashTracker.logThrowableCrash(t);
@@ -100,6 +105,7 @@ public class Robot extends TimedRobot {
       // RobotContainer.limelight.getEntry("ledMode").setNumber(1);
 
       RobotContainer.getDrive().resetEncoders();
+      RobotContainer.getShooter().setHoodMode(IdleMode.kBrake);
 
 
       if (m_autonomousCommand != null) {

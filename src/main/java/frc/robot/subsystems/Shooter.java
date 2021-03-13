@@ -5,6 +5,8 @@ import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.revrobotics.*;
+import com.revrobotics.CANSparkMax.IdleMode;
+
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
@@ -48,6 +50,7 @@ public class Shooter extends HHSubsystemBase {
 
         // Configure Hood Spark Max
         HoodMotor.setInverted(true);
+        HoodMotor.setIdleMode(IdleMode.kBrake);
         hoodPIDController = HoodMotor.getPIDController();
         hoodEncoder = HoodMotor.getEncoder();
 
@@ -69,6 +72,8 @@ public class Shooter extends HHSubsystemBase {
         SmartDashboard.putNumber("FlyWheel Velocity", FlywheelShooter.getSelectedSensorVelocity());
         SmartDashboard.putNumber("Hood Position", hoodEncoder.getPosition());
         SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
+
+        SmartDashboard.putNumber("Projected Hood Pos", thorToHoodPos());
         
 //        SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
         mapPotVoltageToNeoEncoder();
@@ -88,9 +93,9 @@ public class Shooter extends HHSubsystemBase {
             HoodMotor.getEncoder().setPosition(0);
         }
 
-        if (Math.abs(getHoodPotVoltage() - 2.546) < .1) {
-            HoodMotor.getEncoder().setPosition(18.142);
-        }
+        // if (Math.abs(getHoodPotVoltage() - 2.546) < .1) {
+        //     HoodMotor.getEncoder().setPosition(18.142);
+        // }
     }
 
     public double getHoodPotVoltage() {
@@ -136,7 +141,16 @@ public class Shooter extends HHSubsystemBase {
         FlywheelShooter.set(ControlMode.Velocity, speed);
     }
 
+    public void setHoodMode(IdleMode mode) {
+        HoodMotor.setIdleMode(mode);
+    }
+
     public void setFlywheelMotor(double speed) {
         FlywheelShooter.set(ControlMode.PercentOutput, speed);
+    }
+
+    public double thorToHoodPos() {
+        double thor = RobotContainer.limelight.getEntry("thor").getDouble(0.0);
+        return (11.3196 * Math.atan(-0.0167135 * thor) + 18.6686) + .15; 
     }
 }

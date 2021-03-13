@@ -12,12 +12,11 @@ public class PIDHoodSetPostion extends PIDCommand {
                 new PIDController(Constants.ShooterConstants.HoodkP, Constants.ShooterConstants.HoodkI, Constants.ShooterConstants.HoodkD),
                 shooter::getHoodPosition,
                 setpoint,
-                output -> shooter.setHoodMotor(output * .4),
+                output -> shooter.setHoodMotor(output),
                 shooter
         );
 
-        getController().enableContinuousInput(0, 20);
-        getController().setTolerance(.005, 0);
+        getController().setTolerance(0.05);
     }
 
     @Override
@@ -29,6 +28,7 @@ public class PIDHoodSetPostion extends PIDCommand {
 
     @Override
     public boolean isFinished() {
-        return getController().atSetpoint();
+        return false;
+        // return getController().atSetpoint();
     }
 }
