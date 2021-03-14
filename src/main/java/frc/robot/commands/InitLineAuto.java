@@ -14,7 +14,7 @@ public class InitLineAuto extends SequentialCommandGroup {
                 new ParallelCommandGroup(
                         new PIDTrackHighGoal(turret),
                         new PIDVelocityShooter(shooter, 15000),
-                        new PIDHoodSetPostion(3.8, shooter),
+                        new PIDHoodSetPostion(shooter, 0),
                         new AutoLoad(ballElevator, .5)
                 ).withTimeout(6.5),
 //                new StraightDrive(drive, -5)

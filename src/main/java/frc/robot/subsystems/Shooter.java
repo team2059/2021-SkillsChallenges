@@ -50,6 +50,7 @@ public class Shooter extends HHSubsystemBase {
         FlywheelShooter.config_kD(ShooterConstants.MotorSlotIdx, ShooterConstants.FlyWheelkD, ShooterConstants.CtreTimeoutMs);
 
         // Configure Hood Spark Max
+        HoodMotor.restoreFactoryDefaults();
         HoodMotor.setInverted(true);
         hoodPIDController = HoodMotor.getPIDController();
         hoodEncoder = HoodMotor.getEncoder();
@@ -65,9 +66,12 @@ public class Shooter extends HHSubsystemBase {
         hoodPIDController.setSmartMotionMinOutputVelocity(ShooterConstants.HoodMinVel, smartMotionSlot);
         hoodPIDController.setSmartMotionMaxAccel(ShooterConstants.HoodMaxAcc, smartMotionSlot);
         hoodPIDController.setSmartMotionAllowedClosedLoopError(ShooterConstants.HoodAllowedErr, smartMotionSlot);
+
+        HoodMotor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kForward, true);
+        HoodMotor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, true);
     
-        SmartDashboard.putNumber("Target Flywheel Velocity", targetVelocity);
-        SmartDashboard.putNumber("Target Hood Position", targetHoodPosition);
+        HoodMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kForward, 17);
+        HoodMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, 0);
     }
 
     @Override
@@ -75,13 +79,8 @@ public class Shooter extends HHSubsystemBase {
         SmartDashboard.putNumber("FlyWheel Velocity", FlywheelShooter.getSelectedSensorVelocity());
         SmartDashboard.putNumber("Hood Position", hoodEncoder.getPosition());
         SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
-
-        Shooter.targetVelocity = (int) SmartDashboard.getNumber("Target Flywheel Velocity", 0);
-        Shooter.targetHoodPosition = SmartDashboard.getNumber("Target Hood Position", 0);
-
-//        SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
         mapPotVoltageToNeoEncoder();
-//        SmartDashboard.putNumber("Hood Output", HoodMotor.getAppliedOutput());
+
 
     }
 
@@ -93,13 +92,14 @@ public class Shooter extends HHSubsystemBase {
     }
 
     public void mapPotVoltageToNeoEncoder() {
-        if (Math.abs(getHoodPotVoltage() - .7885) < .1) {
+        if (Math.abs(getHoodPotVoltage() - 0.111) < .1) {
             HoodMotor.getEncoder().setPosition(0);
         }
 
-        if (Math.abs(getHoodPotVoltage() - 3.24) < .1) {
-            HoodMotor.getEncoder().setPosition(18.142);
+        if (Math.abs(getHoodPotVoltage() - 2.02) < .1) {
+            HoodMotor.getEncoder().setPosition(17.523);
         }
+
     }
 
     public double getHoodPotVoltage() {
@@ -112,13 +112,14 @@ public class Shooter extends HHSubsystemBase {
 
     public void setHoodPosition(double position) {
         System.out.println("Setting Hood to " + position);
-//        hoodPIDController.setReference(position, ControlType.kSmartMotion);
-        HoodMotor.getPIDController().setReference(position, ControlType.kSmartMotion);
+        // hoodPIDController.setReference(position, ControlType.kSmartMotion);
+        HoodMotor.getPIDController().setReference(position, ControlType.kPosition);
     }
 
     public double getHoodPosition() {
         return hoodEncoder.getPosition();
     }
+
 
     public void setHoodMotor(double speed) {
         HoodMotor.set(speed);

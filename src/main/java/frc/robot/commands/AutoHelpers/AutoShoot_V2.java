@@ -17,7 +17,7 @@ public class AutoShoot_V2  extends ParallelCommandGroup {
                 new PIDTrackHighGoal(turret),
                 new PIDVelocityShooter(shooter, 16000),
                 new InstantCommand(() -> conveyor.setAgitator(.55)),
-                new PIDHoodSetPostion(hoodPosition, shooter),
+                new PIDHoodSetPostion(shooter, hoodPosition),
                 new AutoLoad(ballElevator, .5),
                 new InstantCommand(() -> turret.setTurretRotatorMotor(0))
         );

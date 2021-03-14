@@ -187,11 +187,11 @@ public class RobotContainer {
             .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
 
     new JoystickButton(driveJS, 11)
-            .whenPressed(new PIDVelocityShooter(m_Shooter, 19000))
-            .whenReleased(() -> m_Shooter.setFlywheelMotor(0));
+            .whenPressed(() -> m_Shooter.setHoodPosition(0))
+            .whenReleased(() -> m_Shooter.setHoodMotor(0));
 
     new JoystickButton(driveJS, 12)
-            .whenPressed(new PIDHoodSetPostion(0, m_Shooter))
+            .whenPressed(() -> m_Shooter.setHoodPosition(15))
             .whenReleased(() -> m_Shooter.setHoodMotor(0));
 
 //     new JoystickButton(driveJS, 5)
@@ -215,14 +215,13 @@ public class RobotContainer {
     new JoystickButton(buttonBox, 1)
             .whileHeld(new ConditionalCommand(
                     new ConditionalCommand(
-                            new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 4.5, m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
-                            new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 3.85, m_Conveyor).andThen(new PIDHoodSetPostion(0, m_Shooter)),
+                            new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 4.5, m_Conveyor).andThen(new PIDHoodSetPostion(m_Shooter, 0)),
+                            new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 3.85, m_Conveyor).andThen(new PIDHoodSetPostion(m_Shooter, 0)),
                             getDistanceSelector()
                     ),
                 new PIDVelocityShooter(m_Shooter, 15000),
                 getShooterSelector()))
             .whenReleased(() -> m_Shooter.setFlywheelMotor(0));
-
     /* LOAD */
     new JoystickButton(buttonBox, 2)
             .whileHeld(new ParallelCommandGroup(
@@ -264,12 +263,12 @@ public class RobotContainer {
 
     /* SHUTTER UP - 11 */
     new JoystickButton(buttonBox, 11)
-            .whenPressed(new PIDHoodSetPostion(3.85, m_Shooter))
+            .whenPressed(new PIDHoodSetPostion(m_Shooter, 3.85))
             .whenReleased(() -> m_Shooter.setHoodMotor(0));
 
     /* SHUTTER UP - 12 */
     new JoystickButton(buttonBox, 11)
-            .whenPressed(new PIDHoodSetPostion(0, m_Shooter))
+            .whenPressed(new PIDHoodSetPostion(m_Shooter, 0))
             .whenReleased(() -> m_Shooter.setHoodMotor(0));
 
 //     /* CLIMB LEFT */

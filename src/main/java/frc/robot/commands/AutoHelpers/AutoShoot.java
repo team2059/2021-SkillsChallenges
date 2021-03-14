@@ -16,10 +16,10 @@ public class AutoShoot extends SequentialCommandGroup {
                     new ParallelCommandGroup(
                             new PIDTrackHighGoal(turret),
                             new PIDVelocityShooter(shooter, 15000),
-                            new PIDHoodSetPostion(hoodPosition, shooter),
+                            new PIDHoodSetPostion(shooter, hoodPosition),
                             new AutoLoad(ballElevator, .5)
                     ).withTimeout(6.5),
-                     new PIDHoodSetPostion(0, shooter)
+                    new PIDHoodSetPostion(shooter, 0)
             );
         }
 }

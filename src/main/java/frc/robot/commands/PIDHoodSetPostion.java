@@ -1,34 +1,37 @@
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.controller.PIDController;
-import edu.wpi.first.wpilibj2.command.PIDCommand;
-import frc.robot.Constants;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.RobotContainer;
+import frc.robot.subsystems.BallElevator;
+import frc.robot.subsystems.Conveyor;
 import frc.robot.subsystems.Shooter;
 
-public class PIDHoodSetPostion extends PIDCommand {
+public class PIDHoodSetPostion extends CommandBase {
+    private double setPoint;
+    private Shooter m_Shooter;
 
-    public PIDHoodSetPostion(double setpoint, Shooter shooter) {
-        super(
-                new PIDController(Constants.ShooterConstants.HoodkP, Constants.ShooterConstants.HoodkI, Constants.ShooterConstants.HoodkD),
-                shooter::getHoodPosition,
-                setpoint,
-                output -> shooter.setHoodMotor(output * .4),
-                shooter
-        );
-
-        getController().enableContinuousInput(0, 20);
-        getController().setTolerance(.005, 0);
+    public PIDHoodSetPostion(Shooter subsystem, double setpoint) {
+        this.m_Shooter = subsystem;
+        this.setPoint = setpoint;
     }
 
     @Override
     public void initialize() {
-        System.out.println("Shooting hood " + getController().getSetpoint());
+        System.out.println("Starting Ball Elevator");
+    }
 
-        System.out.println("Starting Hood Position");
+    @Override
+    public void execute() {
+        m_Shooter.setHoodPosition(this.setPoint);
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        m_Shooter.setHoodMotor(0);
     }
 
     @Override
     public boolean isFinished() {
-        return getController().atSetpoint();
+        return false;
     }
 }
