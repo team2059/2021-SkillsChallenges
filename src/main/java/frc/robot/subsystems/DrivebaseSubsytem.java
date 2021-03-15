@@ -236,4 +236,14 @@ public class DrivebaseSubsytem extends SubsystemBase {
   public double getTurnRate() {
     return -m_gyro.getRate();
   }
+
+  public void setDriveIdleMode(IdleMode mode) {
+    leftFront.setIdleMode(mode);
+    leftMid.setIdleMode(mode);
+    leftBack.setIdleMode(mode);
+    rightFront.setIdleMode(mode);
+    rightMid.setIdleMode(mode);
+    rightBack.setIdleMode(mode);
+  }
+
 }
