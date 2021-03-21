@@ -157,11 +157,11 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
-    new JoystickButton(driveJS, 1)
-            .whileHeld(new ParallelCommandGroup(
-                    new SetCollector(m_Conveyor, .75),
-                    new LoadNextBall(m_BallElevator, .75)
-            )).whenReleased(() -> m_Conveyor.setCollectorMotor(0));
+//     new JoystickButton(driveJS, 1)
+//             .whileHeld(new ParallelCommandGroup(
+//                     new SetCollector(m_Conveyor, .75),
+//                     new LoadNextBall(m_BallElevator, .75)
+//             )).whenReleased(() -> m_Conveyor.setCollectorMotor(0));
 
     new JoystickButton(driveJS, 2)
             .whenPressed(() -> m_Conveyor.toggleCollector());

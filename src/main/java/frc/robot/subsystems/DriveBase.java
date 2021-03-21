@@ -249,7 +249,16 @@ public class DriveBase extends SubsystemBase {
   }
 
   public void drive(){
-    m_drive.arcadeDrive(RobotContainer.driveJS.getRawAxis(0), RobotContainer.driveJS.getRawAxis(1));
+
+    double speed = RobotContainer.driveJS.getRawAxis(0)*.5;
+    double rotation = RobotContainer.driveJS.getRawAxis(1)*.5;
+
+    if (RobotContainer.driveJS.getRawButton(1)) {
+      m_drive.arcadeDrive(speed, -rotation);
+    } else {
+      m_drive.arcadeDrive(speed, rotation);
+    }
+    
   }
 
   
