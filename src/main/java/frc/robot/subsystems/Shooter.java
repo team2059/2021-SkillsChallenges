@@ -27,8 +27,10 @@ public class Shooter extends HHSubsystemBase {
 
     SimpleMotorFeedforward flyWheelFeedforward = new SimpleMotorFeedforward(ShooterConstants.ksVolts, ShooterConstants.kvVoltSecondsPerMeter, ShooterConstants.kaVoltSecondsSquaredPerMeter);
 
-    public static int targetVelocity = 0;
+    public int targetVelocity = 0;
     public static double targetHoodPosition = 0;
+
+    String[] zones = {"Green", "Yellow", "Blie", "Red"};
 
     public Shooter() {
         super("Shooter");
@@ -72,13 +74,17 @@ public class Shooter extends HHSubsystemBase {
     
         HoodMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kForward, 17);
         HoodMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, 0);
+
+        SmartDashboard.putStringArray("Shooting Zones", zones);
     }
 
     @Override
     public void periodic() {
         SmartDashboard.putNumber("FlyWheel Velocity", FlywheelShooter.getSelectedSensorVelocity());
+        SmartDashboard.putNumber("FlyWheel Tgt Velocity", targetVelocity);
         SmartDashboard.putNumber("Hood Position", hoodEncoder.getPosition());
-        SmartDashboard.putNumber("Hood Pot Voltage", getHoodPotVoltage());
+        SmartDashboard.putNumber("TGT Hood Position", thorToHoodPos());
+        
         mapPotVoltageToNeoEncoder();
 
 
@@ -89,6 +95,14 @@ public class Shooter extends HHSubsystemBase {
     @Override
     public void update(RobotState robotState) {
 
+    }
+
+    public int getTargetVeloctiy() {
+        return targetVelocity;
+    }
+
+    public void setTargetVeloctiy(int velocity) {
+        this.targetVelocity = velocity;
     }
 
     public void mapPotVoltageToNeoEncoder() {
@@ -111,7 +125,6 @@ public class Shooter extends HHSubsystemBase {
     }
 
     public void setHoodPosition(double position) {
-        System.out.println("Setting Hood to " + position);
         // hoodPIDController.setReference(position, ControlType.kSmartMotion);
         HoodMotor.getPIDController().setReference(position, ControlType.kPosition);
     }
@@ -148,5 +161,15 @@ public class Shooter extends HHSubsystemBase {
 
     public void setFlywheelMotor(double speed) {
         FlywheelShooter.set(ControlMode.PercentOutput, speed);
+    }
+
+    public double thorToHoodPos() {
+        double thor = RobotContainer.limelight.getEntry("thor").getDouble(0.0);
+
+        if (thor < 148) { // If the Robot is in the Red Zone, use hard-coded value
+            return 4.6;
+        } else {
+            return (11.3196 * Math.atan(-0.0167135 * thor) + 18.6686); 
+        }
     }
 }

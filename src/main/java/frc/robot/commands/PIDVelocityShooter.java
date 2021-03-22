@@ -9,7 +9,7 @@ public class PIDVelocityShooter extends CommandBase {
     private final Shooter m_Shooter;
     private double setpoint;
 
-    public PIDVelocityShooter(Shooter subsystem, double setpoint) {
+    public PIDVelocityShooter(Shooter subsystem, int setpoint) {
         this.m_Shooter = subsystem;
         this.setpoint = setpoint;
     }
@@ -21,6 +21,7 @@ public class PIDVelocityShooter extends CommandBase {
 
     @Override
     public void execute() {
+        m_Shooter.setTargetVeloctiy((int) this.setpoint);
         m_Shooter.setWheelVelocity(this.setpoint);
     }
 

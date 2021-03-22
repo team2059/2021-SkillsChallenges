@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.AutoHelpers;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.RobotContainer;
@@ -6,13 +6,12 @@ import frc.robot.subsystems.BallElevator;
 import frc.robot.subsystems.Conveyor;
 import frc.robot.subsystems.Shooter;
 
-public class PIDHoodSetPostion extends CommandBase {
+public class ThorToPIDHoodPos extends CommandBase {
     private double setPoint;
     private Shooter m_Shooter;
 
-    public PIDHoodSetPostion(Shooter subsystem, double setpoint) {
+    public ThorToPIDHoodPos(Shooter subsystem) {
         this.m_Shooter = subsystem;
-        this.setPoint = setpoint;
     }
 
     @Override
@@ -22,8 +21,7 @@ public class PIDHoodSetPostion extends CommandBase {
 
     @Override
     public void execute() {
-        System.out.println("Setting Hood to " + this.setPoint);
-        m_Shooter.setHoodPosition(this.setPoint);
+        m_Shooter.setHoodPosition(m_Shooter.thorToHoodPos());
     }
 
     @Override

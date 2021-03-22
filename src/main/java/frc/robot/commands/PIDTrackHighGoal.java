@@ -29,6 +29,11 @@ public class PIDTrackHighGoal extends PIDCommand {
     }
 
     @Override
+    public void end(boolean isInteruppted) {
+        this.m_Turret.setTurretRotatorMotor(0);
+    }
+
+    @Override
     public boolean isFinished() {
         return getController().atSetpoint();
     }

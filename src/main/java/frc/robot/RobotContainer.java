@@ -33,6 +33,7 @@ import frc.robot.commands.*;
 import frc.robot.commands.AutoHelpers.AutoShootTester;
 import frc.robot.commands.AutoHelpers.AutoShoot_V2;
 import frc.robot.commands.AutoHelpers.LoadNextBall;
+import frc.robot.commands.AutoHelpers.StationaryShoot;
 import frc.robot.subsystems.*;
 import frc.robot.TrajectoryLoader;
 import edu.wpi.first.wpilibj.controller.PIDController;
@@ -157,11 +158,11 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
-//     new JoystickButton(driveJS, 1)
-//             .whileHeld(new ParallelCommandGroup(
-//                     new SetCollector(m_Conveyor, .75),
-//                     new LoadNextBall(m_BallElevator, .75)
-//             )).whenReleased(() -> m_Conveyor.setCollectorMotor(0));
+    new JoystickButton(driveJS, 1)
+            .whileHeld(new ParallelCommandGroup(
+                    new SetCollector(m_Conveyor, .75),
+                    new LoadNextBall(m_BallElevator, .75)
+            )).whenReleased(() -> m_Conveyor.setCollectorMotor(0));
 
     new JoystickButton(driveJS, 2)
             .whenPressed(() -> m_Conveyor.toggleCollector());
@@ -179,12 +180,20 @@ public class RobotContainer {
 
 
     new JoystickButton(driveJS, 7)
-            .whileHeld(() -> m_Turret.setTurretRotatorMotor(.5))
-            .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
+            .whileHeld(new StationaryShoot(m_Turret, m_Shooter, m_BallElevator, 1.35, m_Conveyor))
+            .whenReleased(() -> m_Shooter.setFlywheelMotor(0));
 
     new JoystickButton(driveJS, 8)
-            .whileHeld(() -> m_Turret.setTurretRotatorMotor(-.5))
-            .whenReleased(() -> m_Turret.setTurretRotatorMotor(0));
+            .whileHeld(new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 3.6, m_Conveyor))
+            .whenReleased(() -> m_Shooter.setFlywheelMotor(0));
+
+    new JoystickButton(driveJS, 9)
+            .whileHeld(new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 4.8, m_Conveyor))
+            .whenReleased(() -> m_Shooter.setFlywheelMotor(0));
+
+    new JoystickButton(driveJS, 10)
+            .whileHeld(new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 4.6, m_Conveyor))
+            .whenReleased(() -> m_Shooter.setFlywheelMotor(0));
 
     new JoystickButton(driveJS, 11)
             .whenPressed(() -> m_Shooter.setHoodPosition(0))
@@ -215,18 +224,18 @@ public class RobotContainer {
     new JoystickButton(buttonBox, 1)
             .whileHeld(new ConditionalCommand(
                     new ConditionalCommand(
-                            new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 4.5, m_Conveyor).andThen(new PIDHoodSetPostion(m_Shooter, 0)),
-                            new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 3.85, m_Conveyor).andThen(new PIDHoodSetPostion(m_Shooter, 0)),
+                            new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 4.5, m_Conveyor),
+                            new AutoShootTester(m_Turret, m_Shooter, m_BallElevator, 0.5, m_Conveyor),
                             getDistanceSelector()
                     ),
-                new PIDVelocityShooter(m_Shooter, 15000),
+                new PIDVelocityShooter(m_Shooter, 21000),
                 getShooterSelector()))
             .whenReleased(() -> m_Shooter.setFlywheelMotor(0));
     /* LOAD */
     new JoystickButton(buttonBox, 2)
             .whileHeld(new ParallelCommandGroup(
                     new SetCollector(m_Conveyor, .5),
-                    new LoadNextBall(m_BallElevator, .75)
+                    new SetBallElevator(m_BallElevator, .75)
             )).whenReleased(() -> m_Conveyor.setCollectorMotor(0));
 
     /* TURRET LEFT */

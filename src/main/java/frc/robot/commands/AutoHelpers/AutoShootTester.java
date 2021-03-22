@@ -15,11 +15,11 @@ public class AutoShootTester  extends ParallelCommandGroup {
 
     public AutoShootTester(Turret turret, Shooter shooter, BallElevator ballElevator, double hoodPosition, Conveyor conveyor) {
         addCommands(
-                new PIDTrackHighGoal(turret),
-                new PIDVelocityShooter(shooter, Shooter.targetVelocity),
-                new InstantCommand(() -> conveyor.setAgitator(.55)),
-                new PIDHoodSetPostion(shooter, hoodPosition),
-                new AutoLoad(ballElevator, .5)
+            new PIDTrackHighGoal(turret),
+            new PIDVelocityShooter(shooter, 21000),
+            new InstantCommand(() -> conveyor.setAgitator(.55)),
+            new PIDHoodSetPostion(shooter, hoodPosition),
+            new AutoLoad(ballElevator, .35)
         );
     }
 }

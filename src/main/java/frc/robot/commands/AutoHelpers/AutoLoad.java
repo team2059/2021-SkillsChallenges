@@ -26,13 +26,13 @@ public class AutoLoad extends CommandBase {
 
     @Override
     public void initialize() {
-        System.out.println("Loading Next Ball \n\n\n");
+        System.out.println("Starting AutoLoad Sequence");
     }
 
     @Override
     public void execute() {
-        if (Math.abs(RobotContainer.getShooter().getFlyWheelVelocity() - Shooter.targetVelocity) < 500){
-            System.out.println("Loading Next Ball \n\n\n");
+        if (Math.abs(RobotContainer.getShooter().getFlyWheelVelocity() - RobotContainer.getShooter().getTargetVeloctiy()) < 500){
+            System.out.println("Loading Next Ball");
             m_BallElevator.setBallElevatorMotor(speed);
         } else {
             m_BallElevator.setBallElevatorMotor(0);
