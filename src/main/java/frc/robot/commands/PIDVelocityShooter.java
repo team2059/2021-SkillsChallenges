@@ -12,6 +12,8 @@ public class PIDVelocityShooter extends CommandBase {
     public PIDVelocityShooter(Shooter subsystem, int setpoint) {
         this.m_Shooter = subsystem;
         this.setpoint = setpoint;
+
+        addRequirements(subsystem);
     }
 
     @Override

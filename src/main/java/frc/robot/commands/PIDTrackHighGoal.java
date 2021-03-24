@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.TurretConstants;
 import frc.robot.subsystems.Turret;
 
@@ -35,6 +36,6 @@ public class PIDTrackHighGoal extends PIDCommand {
 
     @Override
     public boolean isFinished() {
-        return getController().atSetpoint();
+        return getController().atSetpoint() || RobotContainer.limelight.getEntry("tv").getDouble(0.0) == 0.0;
     }
 }

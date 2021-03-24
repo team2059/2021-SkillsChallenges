@@ -118,6 +118,15 @@ public class DriveBase extends SubsystemBase {
     SmartDashboard.putNumber("Current Right Speed", m_rightEncoder.getVelocity());
   }
 
+  public void setIdleMode(IdleMode mode) {
+    leftFront.setIdleMode(mode);
+    leftMid.setIdleMode(mode);
+    leftBack.setIdleMode(mode);
+    rightFront.setIdleMode(mode);
+    rightMid.setIdleMode(mode);
+    rightBack.setIdleMode(mode);
+  }
+
   /**
    * Returns the currently-estimated pose of the robot.
    *

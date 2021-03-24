@@ -32,6 +32,7 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.commands.*;
 import frc.robot.commands.AutoHelpers.AutoShootTester;
 import frc.robot.commands.AutoHelpers.AutoShoot_V2;
+import frc.robot.commands.AutoHelpers.GoToThorPos;
 import frc.robot.commands.AutoHelpers.LoadNextBall;
 import frc.robot.commands.AutoHelpers.StationaryShoot;
 import frc.robot.subsystems.*;
@@ -87,6 +88,8 @@ public class RobotContainer {
     // Default Commands
     // m_Turret.setDefaultCommand(new TurretRotate(m_Turret));
     m_DriveBase.setDefaultCommand(new Drive(m_DriveBase));
+    m_Turret.setDefaultCommand(new PIDTrackHighGoal(m_Turret));
+//     m_Shooter.setDefaultCommand(new PIDVelocityShooter(m_Shooter, 21000));
     // m_BallElevator.setDefaultCommand(new LoadNextBall(m_BallElevator));
   }
 
@@ -200,8 +203,8 @@ public class RobotContainer {
             .whenReleased(() -> m_Shooter.setHoodMotor(0));
 
     new JoystickButton(driveJS, 12)
-            .whenPressed(() -> m_Shooter.setHoodPosition(15))
-            .whenReleased(() -> m_Shooter.setHoodMotor(0));
+            .whenPressed(new GoToThorPos(m_DriveBase, 255))
+            .whenReleased(() -> m_DriveBase.tankDriveVolts(0, 0));
 
 //     new JoystickButton(driveJS, 5)
 //             .whileHeld(() -> m_Climber.setArmPosition(1000))
