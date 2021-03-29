@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
@@ -54,7 +55,7 @@ public class RobotContainer {
   public static ButtonBox buttonBox = new ButtonBox(1);
   public static Joystick testJS = new Joystick(2);
 
-  private Conveyor m_Conveyor = new Conveyor();
+  private static Conveyor m_Conveyor = new Conveyor();
   private static Turret m_Turret = new Turret();
   private static Shooter m_Shooter = new Shooter();
   private static DriveBase m_DriveBase = new DriveBase();
@@ -65,6 +66,10 @@ public class RobotContainer {
 
   public static Shooter getShooter() {
     return m_Shooter;
+  }
+
+  public static Conveyor getConveyor() {
+    return m_Conveyor;
   }
 
   public static DriveBase getDrive() {
@@ -90,23 +95,40 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() throws IOException {
 
-    // limelightBall.getEntry("pipeline").setNumber(1);
+    limelightBall.getEntry("pipeline").setNumber(1);
 
-    Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/Complete.wpilib.json");
+    Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchB/GS_B_B.wpilib.json");
 
-//     System.out.println("Is Red Path? " + isRedPath());
+    int pathID = txToPath();
 
-//     if (isRedPath()) {
-//       trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchA/AR.wpilib.json");
-//     } else {
-//       trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchA/AB.wpilib.json");
-//     }
+    if (pathID == 1){
+      System.out.println("changing path to AB");
+      trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchA/GS_A_B.wpilib.json");
+    } else if (pathID == 2) {
+      System.out.println("changing path to AR");
+      trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchA/GS_A_R.wpilib.json");
+    } else if (pathID == 3) {
+      System.out.println("changing path to BB");
+      trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchB/GS_B_B.wpilib.json");
+    } else {
+      System.out.println("changing path to BR");
+      trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve("paths/GalacticSearchB/GS_B_R.wpilib.json");
+    }
 
+    System.out.println("Running Path " + pathID);
+    SmartDashboard.putNumber("PathID", pathID);
+
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
 
     Trajectory bouncePath = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
 
     RamseteCommand ramseteCommand = new RamseteCommand(
-      bouncePath,
+        bouncePath,
         m_DriveBase::getPose,
         new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
         new SimpleMotorFeedforward(DriveConstants.ksVolts,
@@ -126,7 +148,6 @@ public class RobotContainer {
     m_DriveBase.resetOdometry(bouncePath.getInitialPose());
 
     ParallelCommandGroup bounceCollect = new ParallelCommandGroup(
-      new PIDRotateTurret(m_Turret, 20000),
       new InstantCommand(() -> m_Conveyor.toggleCollector()),
       new ParallelCommandGroup(
                     new SetCollector(m_Conveyor, .75),
@@ -134,18 +155,9 @@ public class RobotContainer {
       ramseteCommand
     );
 
-    SequentialCommandGroup finalCommand = new SequentialCommandGroup(
-      bounceCollect.withTimeout(45),
-      new InstantCommand(() -> System.out.println("Finished Ramsete")),
-      new InstantCommand(() -> m_DriveBase.tankDriveVolts(0, 0)),
-      new InstantCommand(() -> m_Conveyor.toggleCollector()),
-      new PIDRotateTurret(m_Turret, 20000),
-      new AutoShoot_V2(m_Turret, m_Shooter, m_BallElevator, 3.85, m_Conveyor),
-      new PIDVelocityShooter(m_Shooter, 0)
-    );
 
     // Run path following command, then stop at the end.
-    return finalCommand.andThen(() -> System.out.println("Finished Auto Sequence"));
+    return new InstantCommand(() -> m_Conveyor.toggleCollector()).andThen(bounceCollect);
   }
 
   /**
@@ -312,6 +324,46 @@ public class RobotContainer {
 
   private boolean isRedPath() {
     return limelightBall.getEntry("tx").getDouble(0.0) <= -21;
+  }
+
+  private int txToPath() {
+    limelightBall.getEntry("pipeline").setNumber(1);
+    double tx = limelightBall.getEntry("tx").getDouble(0.0);
+    SmartDashboard.putNumber("LL Val 1", tx);
+
+    if (tx > -15) {
+      limelightBall.getEntry("pipeline").setNumber(2);
+
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      SmartDashboard.putNumber("LL Val 2", limelightBall.getEntry("tx").getDouble(0.0));
+      if (limelightBall.getEntry("tx").getDouble(0.0) > 15) {
+        return 1;
+      } else {
+        return 3;
+      }
+    } else {
+      limelightBall.getEntry("pipeline").setNumber(3);
+
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
+      SmartDashboard.putNumber("LL Val 3", limelightBall.getEntry("tx").getDouble(0.0));
+      if (limelightBall.getEntry("tx").getDouble(0.0) > -4) {
+        return 2;
+      } else {
+        return 4;
+      }
+    }
+
   }
 
 }

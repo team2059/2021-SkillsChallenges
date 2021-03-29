@@ -57,6 +57,7 @@ public class Robot extends TimedRobot {
     try {
 
       RobotContainer.getShooter().setHoodMode(IdleMode.kCoast);
+      RobotContainer.limelightBall.getEntry("pipeline").setNumber(1);
 
       CrashTracker.logDisabled();
     } catch (Throwable t) {
@@ -72,6 +73,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     try {
+      RobotContainer.limelightBall.getEntry("pipeline").setNumber(1);
       CrashTracker.logAutoInit();
       m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 

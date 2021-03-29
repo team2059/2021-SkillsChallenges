@@ -163,5 +163,10 @@ public final class Constants {
 
         public static boolean isTenFootShot = true;
         public static double shootLength = Constants.FieldConstants.isTenFootShot ? 3.85 : 4.5;
+
+        public static double pathA_R = -8;
+        public static double pathA_B = -8;
+        public static double pathB_R = -8;
+        public static double pathB_B = -8;
     }
 }
