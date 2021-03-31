@@ -30,6 +30,12 @@ public class Robot extends TimedRobot {
       compressor.setClosedLoopControl(true);
 
       m_robotContainer = new RobotContainer();
+
+      RobotContainer.limelightBall.getEntry("camMode").setNumber(1);
+      RobotContainer.limelightBall.getEntry("ledMode").setNumber(1);
+
+      RobotContainer.limelight.getEntry("camMode").setNumber(1);
+      RobotContainer.limelight.getEntry("ledMode").setNumber(1);
     } catch (Throwable t) {
       CrashTracker.logThrowableCrash(t);
       throw t;
